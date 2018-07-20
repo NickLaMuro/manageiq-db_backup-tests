@@ -5,6 +5,19 @@
 # configures the configuration version (we support older styles for
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
+
+# Setup keys for inter-VM communitcation to the :share VM
+_, priv_key, pub_key = [nil, nil, nil]
+unless File.exist? "share.id_rsa" and File.exist? "share.id_rsa.pub"
+  puts "NOT NEEDED"
+  require "vagrant/util/keypair"
+
+  _, priv_key, pub_key = Vagrant::Util::Keypair.create
+
+  File.write "share.id_rsa",     priv_key
+  File.write "share.id_rsa.pub", pub_key
+end
+
 Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox"
 
@@ -59,6 +72,11 @@ Vagrant.configure("2") do |config|
       ###### manageiq-appliance_console changes
       # cp /vagrant/manageiq-appliance_console/lib/
       #   $APPLIANCE_CONSOLE_DIR/lib/
+
+      ###### copy and update ssh key permissions
+      cp /vagrant/tests/share.id_rsa /home/vagrant/.ssh/
+      chmod 0700 /home/vagrant/.ssh/share.id_rsa
+      chown vagrant:vagrant /home/vagrant/.ssh/share.id_rsa
     SYNC
 
     miq.vm.provision "seed", :type => "shell", :inline => <<-SEED
@@ -93,8 +111,12 @@ Vagrant.configure("2") do |config|
     share.vm.synced_folder ".", "/vagrant", disabled: true
     share.vm.network :private_network, :ip => '192.168.50.11'
 
+    config.vm.provision "file", :source => "./share.id_rsa.pub", :destination => "$HOME/share.id_rsa.pub"
+
     share.vm.provision "bootstrap", :type => "shell", 
       :inline => <<-BOOTSTRAP.gsub(/ {8}/, '')
+        cat share.id_rsa.pub >> .ssh/authorized_keys
+
         apk update
         apk add nfs-utils samba samba-common-tools
 
