@@ -117,8 +117,10 @@ Vagrant.configure("2") do |config|
       :inline => <<-BOOTSTRAP.gsub(/ {8}/, '')
         cat share.id_rsa.pub >> .ssh/authorized_keys
 
+        echo "http://dl-cdn.alpinelinux.org/alpine/v3.4/main" >> /etc/apk/repositories
         apk update
-        apk add nfs-utils samba samba-common-tools
+        apk add nfs-utils samba samba-common-tools \
+          "postgresql<9.6" "postgresql-client<9.6"
 
         mkdir -p /var/nfs
         touch /var/nfs/foo
@@ -157,6 +159,9 @@ Vagrant.configure("2") do |config|
         EOF
         rc-update add samba
         rc-service samba start
+
+        rc-update add postgresql
+        rc-service postgresql start
       BOOTSTRAP
   end
 end
