@@ -89,6 +89,32 @@ $ vagrant provision appliance
 ```
 
 
+TROUBLESHOOTING
+---------------
+
+* If most of the tests for splits are failing:
+  
+  Chances are in this case the appliance might still be running, causing not
+  only a decent delay in the tests between a non-split backup (where the base
+  size for the backup is derived) and the split version, which gives the DB
+  backup more time to grow in size because of split CPU resources, but also
+  extra log statements are created from general appliance actions, causing the
+  size to be bigger as well.
+  
+  Run the following to check if the appliance is still running:
+  
+  ```console
+  $ vagrant ssh appliance -c "sudo systemctl status evmserverd"
+  ```
+  
+  And if it is, run:
+  
+  ```console
+  $ vagrant ssh appliance -c "sudo systemctl stop evmserverd"
+  $ vagrant ssh appliance -c "sudo systemctl disable evmserverd"
+  ```
+
+
 TODO
 ----
 
