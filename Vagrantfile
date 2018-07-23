@@ -70,8 +70,20 @@ Vagrant.configure("2") do |config|
          $APPLIANCE_GEMS_PENDING_DIR/lib/gems/pending/util/postgres_admin.rb
 
       ###### manageiq-appliance_console changes
-      # cp /vagrant/manageiq-appliance_console/lib/
-      #   $APPLIANCE_CONSOLE_DIR/lib/
+      cp /vagrant/manageiq-appliance_console/bin/appliance_console \
+        $APPLIANCE_CONSOLE_DIR/bin/appliance_console
+      cp /vagrant/manageiq-appliance_console/lib/manageiq-appliance_console.rb \
+        $APPLIANCE_CONSOLE_DIR/lib/manageiq-appliance_console.rb
+      cp /vagrant/manageiq-appliance_console/lib/manageiq/appliance_console/database_admin.rb \
+        $APPLIANCE_CONSOLE_DIR/lib/manageiq/appliance_console/database_admin.rb
+      cp /vagrant/manageiq-appliance_console/lib/manageiq/appliance_console/database_configuration.rb \
+        $APPLIANCE_CONSOLE_DIR/lib/manageiq/appliance_console/database_configuration.rb
+      cp /vagrant/manageiq-appliance_console/lib/manageiq/appliance_console/i18n.rb \
+        $APPLIANCE_CONSOLE_DIR/lib/manageiq/appliance_console/i18n.rb
+      cp /vagrant/manageiq-appliance_console/lib/manageiq/appliance_console/prompts.rb \
+        $APPLIANCE_CONSOLE_DIR/lib/manageiq/appliance_console/prompts.rb
+      cp /vagrant/manageiq-appliance_console/locales/appliance/en.yml \
+        $APPLIANCE_CONSOLE_DIR/locales/appliance/en.yml
 
       ###### copy and update ssh key permissions
       cp /vagrant/tests/share.id_rsa /home/vagrant/.ssh/
