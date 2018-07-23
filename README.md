@@ -118,5 +118,5 @@ TROUBLESHOOTING
 TODO
 ----
 
-- [ ] Setup test script to reload the dumps to a dummy DB, and confirm proper
+- [x] Setup test script to reload the dumps to a dummy DB, and confirm proper
   table sizes with the original.
