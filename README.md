@@ -56,7 +56,7 @@ Setup
 3. To run the test, run the following:
    
    ```console
-   $ vagrant ssh appliance -c "sudo /usr/local/bin/ruby /vagrant/tests/smoketest.rb"
+   $ vagrant ssh appliance -c "sudo -i ruby /vagrant/tests/smoketest.rb"
    ```
 
 This does assume that the following pull requests have been merged for the
