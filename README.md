@@ -33,7 +33,7 @@ Setup
    ```
    ├── dir_for_this_code
    │   ├── Vagrantfile
-   │   └── smoketest_db_tasks.rb
+   │   └── smoketest.rb
    ├── manageiq
    │   ...
    ├── manageiq-gems-pending
