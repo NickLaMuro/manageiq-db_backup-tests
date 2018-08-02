@@ -89,6 +89,40 @@ $ vagrant provision appliance
 ```
 
 
+Creating and testing FileDepots
+-------------------------------
+
+### Creating and Testing NFS
+
+```console
+$ vagrant ssh appliance
+appliance(vagrant) $ vmdb
+appliance(vagrant) $ sudo --shell
+appliance(root) $ bin/rails c
+irb> task = MiqTask.create
+irb> file_depot = FileDepotNfs.create(:uri => "nfs://192.168.50.11")
+irb> MiqServer.my_server.log_file_depot = file_depot
+irb> MiqServer.my_server.save
+irb> MiqServer.my_server.post_current_logs(task.id, file_depot)
+```
+
+
+### Creating and Testing SMB
+
+```console
+$ vagrant ssh appliance
+appliance(vagrant) $ vmdb
+appliance(vagrant) $ sudo --shell
+appliance(root) $ bin/rails c
+irb> task = MiqTask.create
+irb> smb_auth = Authentication.new(:userid => "vagrant", :password => "vagrant")
+irb> file_depot = FileDepotSmb.create(:uri => "smb://192.168.50.11/share", :authentications => [smb_auth])
+irb> MiqServer.my_server.log_file_depot = file_depot
+irb> MiqServer.my_server.save
+irb> MiqServer.my_server.post_current_logs(task.id, file_depot)
+```
+
+
 TROUBLESHOOTING
 ---------------
 
