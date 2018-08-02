@@ -68,6 +68,10 @@ Vagrant.configure("2") do |config|
       ###### manageiq-gems-pending changes
       cp /vagrant/manageiq-gems-pending/lib/gems/pending/util/postgres_admin.rb \
          $APPLIANCE_GEMS_PENDING_DIR/lib/gems/pending/util/postgres_admin.rb
+      cp /vagrant/manageiq-gems-pending/lib/gems/pending/util/mount/miq_generic_mount_session.rb \
+         $APPLIANCE_GEMS_PENDING_DIR/lib/gems/pending/util/mount/miq_generic_mount_session.rb
+      cp /vagrant/manageiq-gems-pending/lib/gems/pending/util/mount/miq_s3_session.rb \
+         $APPLIANCE_GEMS_PENDING_DIR/lib/gems/pending/util/mount/miq_s3_session.rb
 
       ###### manageiq-appliance_console changes
       cp /vagrant/manageiq-appliance_console/bin/appliance_console \
