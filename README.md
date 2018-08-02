@@ -114,6 +114,25 @@ TROUBLESHOOTING
   $ vagrant ssh appliance -c "sudo systemctl disable evmserverd"
   ```
 
+* If split backup tests are failing
+  
+  As much as I have done to try an mitigate this, it does happen from time to
+  time.
+  
+  I think part of it is that when you wait to run tests for a while, the
+  database log might get "back logged", and cause a considerable amount extra
+  bytes to exist on the DB log.
+  
+  Another alternative (facts) theory is that `postgresql`/the appliance
+  database configuration might have decided to run a background task just after
+  you were running the previous test and caused the `split backup` test in
+  question to be much larger.
+  
+  Try re-running and seeing if it passes.  These tests with the backup aren't
+  fool proof since they just checking that they byte size of the file is
+  "mostly" the same since it is quicker than reloading the DB... though we do
+  now do that....
+
 
 TODO
 ----
