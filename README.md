@@ -126,7 +126,7 @@ irb> MiqServer.my_server.post_current_logs(task.id, file_depot)
 TROUBLESHOOTING
 ---------------
 
-* If most of the tests for splits are failing:
+* **If most of the tests for splits are failing:**
   
   Chances are in this case the appliance might still be running, causing not
   only a decent delay in the tests between a non-split backup (where the base
@@ -148,7 +148,7 @@ TROUBLESHOOTING
   $ vagrant ssh appliance -c "sudo systemctl disable evmserverd"
   ```
 
-* If split backup tests are failing
+* **If split backup tests are failing**
   
   As much as I have done to try an mitigate this, it does happen from time to
   time.
@@ -166,6 +166,13 @@ TROUBLESHOOTING
   fool proof since they just checking that they byte size of the file is
   "mostly" the same since it is quicker than reloading the DB... though we do
   now do that....
+
+* **`Aws::S3::Errors::RequestTimeTooSkewed`**
+  
+  You might get this if your VM has been turned on in between shutting of your
+  laptop lid, or other causes.
+  
+  Best to just restart the VMs with a `vagrant halt && vagrant up`
 
 
 TODO
