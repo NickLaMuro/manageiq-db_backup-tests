@@ -173,6 +173,7 @@ TODO
 
 - [x] Setup test script to reload the dumps to a dummy DB, and confirm proper
   table sizes with the original.
-- [ ] Test `appliance_console` commands (backup & dump)
-- [ ] Test database restore
-- [ ] Test table exclusions
+- [x] Test `appliance_console` commands (backup & dump)
+- [x] Test database restore
+- [x] Test table exclusions
+- [ ] Test s3
