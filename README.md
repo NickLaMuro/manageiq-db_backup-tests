@@ -89,6 +89,17 @@ $ vagrant provision appliance
 ```
 
 
+### S3 environment variable setup
+
+You will need a `.env` file in the directory with the following:
+
+```bash
+AWS_REGION="us-east-1"
+AWS_ACCESS_KEY_ID=[YOUR_ACCESS_KEY_ID_HERE]
+AWS_SECRET_ACCESS_KEY=[YOUR_SECRET_ACCESS_KEY_HERE]
+```
+
+
 Creating and testing FileDepots
 -------------------------------
 
