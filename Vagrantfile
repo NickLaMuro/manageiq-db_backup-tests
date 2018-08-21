@@ -206,6 +206,11 @@ Vagrant.configure("2") do |config|
 
         rc-update add postgresql
         rc-service postgresql start
+
+        echo "listen_addresses = '*'" >> /var/lib/postgresql/9.5/data/postgresql.conf
+        echo "host all all 192.168.50.10/0 md5" >> /var/lib/postgresql/9.5/data/pg_hba.conf
+        psql -U postgres -c "CREATE ROLE root WITH LOGIN CREATEDB SUPERUSER PASSWORD 'smartvm'" postgres
+        rc-service postgresql restart
       BOOTSTRAP
   end
 end
