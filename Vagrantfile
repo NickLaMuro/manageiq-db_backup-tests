@@ -88,7 +88,7 @@ Vagrant.configure("2") do |config|
         echo "http://dl-cdn.alpinelinux.org/alpine/v3.4/main" >> /etc/apk/repositories
         apk update
         apk add nfs-utils samba samba-common-tools \
-          "postgresql<9.6" "postgresql-client<9.6"
+          "postgresql<9.6" "postgresql-client<9.6" vsftpd
 
         mkdir -p /var/nfs
         touch /var/nfs/foo
@@ -135,6 +135,41 @@ Vagrant.configure("2") do |config|
         echo "host all all 192.168.50.10/0 md5" >> /var/lib/postgresql/9.5/data/pg_hba.conf
         psql -U postgres -c "CREATE ROLE root WITH LOGIN CREATEDB SUPERUSER PASSWORD 'smartvm'" postgres
         rc-service postgresql restart
-      BOOTSTRAP
+
+        cat << EOF > /etc/vsftpd/vsftpd.conf
+        listen=NO
+        listen_ipv6=YES
+
+        local_enable=YES
+        local_umask=022
+        write_enable=YES
+        connect_from_port_20=YES
+
+        anonymous_enable=YES
+        anon_root=/var/nfs/ftp/pub
+        anon_umask=022
+        anon_upload_enable=YES
+        anon_mkdir_write_enable=YES
+        anon_other_write_enable=YES
+
+        pam_service_name=vsftpd
+        userlist_enable=YES
+        userlist_deny=NO
+        seccomp_sandbox=NO
+        EOF
+
+        cat << EOF > /etc/vsftpd.user_list
+        vagrant
+        anonymous
+        EOF
+
+        mkdir -p /var/nfs/ftp/pub/uploads
+        chown -R ftp:ftp /var/nfs/ftp
+        chmod -R 555 /var/nfs/ftp/pub
+        chmod 777 /var/nfs/ftp/pub/uploads
+
+        rc-update add vsftpd
+        rc-service vsftpd start
+        BOOTSTRAP
   end
 end
