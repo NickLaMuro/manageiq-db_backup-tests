@@ -194,4 +194,4 @@ TODO
 - [x] Test `appliance_console` commands (backup & dump)
 - [x] Test database restore
 - [x] Test table exclusions
-- [ ] Test s3
+- [x] Test s3
