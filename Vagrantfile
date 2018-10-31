@@ -23,7 +23,7 @@ Vagrant.configure("2") do |config|
 
   # Appliance VM for doing tests on
   config.vm.define :appliance do |miq|
-    miq.vm.box = "manageiq/gaprindashvili"
+    miq.vm.box = "manageiq/hammer"
     miq.vm.network :private_network, :ip => '192.168.50.10'
 
     miq.vm.synced_folder ".", "/vagrant", disabled: true
