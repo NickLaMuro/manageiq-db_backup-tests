@@ -47,6 +47,22 @@ Vagrant.configure("2") do |config|
     miq.vm.provision "reset", :type => "shell", :run => "never",
                               :path => "vagrant_provision_appliance_reset.sh"
 
+    miq.vm.provision "pgctl", :type => "shell", :inline => <<-PGCTL
+      su vagrant -c "pg_ctl stop -D /opt/manageiq/postgres_restore_pg/data -wm fast"
+      rm -rf /opt/manageiq/postgres_restore_pg
+
+      mkdir -p /opt/manageiq/postgres_restore_pg/data
+      mkdir -p /opt/manageiq/postgres_restore_pg/run
+      chown -R vagrant:vagrant /opt/manageiq/postgres_restore_pg
+
+      su vagrant -c "pg_ctl init -D /opt/manageiq/postgres_restore_pg/data -o '-A trust'"
+      echo "unix_socket_directories = '/opt/manageiq/postgres_restore_pg/run, /tmp'" >> /opt/manageiq/postgres_restore_pg/data/postgresql.conf
+
+      su vagrant -c "pg_ctl start -D /opt/manageiq/postgres_restore_pg/data -wo '-p 5555'"
+      su vagrant -c "psql --port 5555 -h localhost -c \\"CREATE ROLE root WITH LOGIN CREATEDB SUPERUSER PASSWORD 'smartvm'\\" postgres"
+      su vagrant -c "psql --port 5555 -h localhost -c \\"CREATE ROLE postgres\\" postgres"
+    PGCTL
+
     miq.vm.provision "seed", :type => "shell", :inline => <<-SEED
       SEED_SCRIPT_URL=https://gist.githubusercontent.com/NickLaMuro/87dddcfbd549b03099f8e55f632b2b57/raw/ce8790f1037dcd32ab38a7988cca61d62c7400b6/bz_1592480_db_replication_script.rb
       SEED_SCRIPT=/var/www/miq/vmdb/tmp/bz_1592480_db_replication_script.rb
