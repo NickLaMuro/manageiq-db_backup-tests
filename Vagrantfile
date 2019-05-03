@@ -9,7 +9,6 @@
 # Setup keys for inter-VM communitcation to the :share VM
 _, priv_key, pub_key = [nil, nil, nil]
 unless File.exist? "share.id_rsa" and File.exist? "share.id_rsa.pub"
-  puts "NOT NEEDED"
   require "vagrant/util/keypair"
 
   _, priv_key, pub_key = Vagrant::Util::Keypair.create
