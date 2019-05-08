@@ -39,6 +39,13 @@ Vagrant.configure("2") do |config|
     miq.vm.synced_folder "../manageiq-appliance_console", "/vagrant/manageiq-appliance_console", rsync_opts
     miq.vm.synced_folder "./",                            "/vagrant/tests",                      rsync_opts
 
+    ###### copy and update ssh key permissions
+    miq.vm.provision "ssh_key", :type => "shell", :inline => <<-SSH_KEY
+      cp /vagrant/tests/share.id_rsa /home/vagrant/.ssh/
+      chmod 0700 /home/vagrant/.ssh/share.id_rsa
+      chown vagrant:vagrant /home/vagrant/.ssh/share.id_rsa
+    SSH_KEY
+
     miq.vm.provision "stop_appliance", :type => "shell", :run => "always", :inline => "systemctl stop evmserverd"
 
     # Now not needed since we us as hammer appliance, and sync kinda just
