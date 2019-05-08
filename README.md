@@ -159,7 +159,7 @@ TROUBLESHOOTING
   $ vagrant ssh appliance -c "sudo systemctl disable evmserverd"
   ```
 
-* **If split backup tests are failing**
+* **If split backup tests are _still_ failing**
   
   As much as I have done to try an mitigate this, it does happen from time to
   time.
@@ -181,6 +181,7 @@ TROUBLESHOOTING
 * **`Aws::S3::Errors::RequestTimeTooSkewed`**
   
   You might get this if your VM has been turned on in between shutting of your
-  laptop lid, or other causes.
+  laptop lid, or other causes (the VMs are setup to re-sync the internal clock
+  on resume).
   
   Best to just restart the VMs with a `vagrant halt && vagrant up`
