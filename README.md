@@ -20,8 +20,64 @@ confirm file integrity of the dumped files for all strategies (local, `NFS`,
 `SMB`, `FTP`, `s3` and `Swift` .
 
 
-Setup
+Usage
 -----
+
+### Quick start
+
+Run `rake test` and things should #JustWork™
+
+The task should handle setting up your `.env` file for you with the needed
+credentials for s3 and swift testing (currently both require a remote instance
+for testing to happen), spin up the environment, seed, and run the specs.  The
+tasks are configured to be as omnipotent as possible (within reason), so they
+should be limited amounts wasted time checking for "dependencies" (running VMs,
+checking for seeding, etc.)
+
+
+### Setup (long version)
+
+The main steps that are done on first run of `rake test` are as follows:
+
+1. Run `rake .env`, which is a `Rake::FileTask` that configures the `.env` with
+   `s3` and `swift` credentials which are needed to run those specs currently.
+   You can opt out of those tests by running `rake test` with the following:
+   
+       $ rake test:no_s3 test:no_swift test
+   
+   Which will skip any setup and tests for `s3` (ideally...)
+   
+2. Run `rake start` which effectively runs `vagrant up` for you.  This task
+   does do some VirtualBox "shell outs" to check if the `vms` are running
+   first, so this will be a snappy task if nothing needs to be done.
+   
+3. Run `rake seed`, which is an ssh task to the box that triggers the seed
+   script that is provisioned into the box (see the `Vagrantfile` for more
+   details).  This task is a little slower even on subsequent runs since it
+   requires running a `bin/rails` on the box (and that is just slow), but it is
+   configure to short circut once it has one once, so it is only a minor delay
+   the subsequent calls.
+   
+4. `rake test` proper is run, which runs the following SSH command on the
+   `appliance` vm:
+   
+       $ vagrant ssh appliance -c "sudo -i ruby /vagrant/tests/smoketest.rb --clean [EXTRA_ARGS]"
+    
+    As mentioned above, the `EXTRA_ARGS` comes from the `test:no_s3` and
+    `test:no_swift` tasks if applied, and `--clean` can be opted out of if
+    `test:no_clean` is passed.  Under the covers this is just mutating a
+    instance variable in the Rakefile, so these tasks need to be run prior to
+    the main `test` task to be populated in the command correctly.
+
+
+Old Setup (outdated)
+--------------------
+
+Leaving this here for reference, but since we are now using a hammer build for
+the appliance, most of the code necessary to run things is included with the
+base image.
+
+### Steps
 
 1. Copy the `Vagrantfile` and the `smoketest_db_tasks.rb` into a directory that is
    on the same level as the following repos:
