@@ -46,7 +46,9 @@ Vagrant.configure("2") do |config|
       chown vagrant:vagrant /home/vagrant/.ssh/share.id_rsa
     SSH_KEY
 
-    miq.vm.provision "stop_appliance", :type => "shell", :run => "always", :inline => "systemctl stop evmserverd"
+    # Skip for now since we seem to need this for allowing seeding
+    miq.vm.provision "stop_appliance", :type   => "shell", :run => "never",
+                                       :inline => "systemctl stop evmserverd"
 
     # Now not needed since we us as hammer appliance, and sync kinda just
     # messes stuff up
