@@ -41,7 +41,9 @@ Vagrant.configure("2") do |config|
 
     miq.vm.provision "stop_appliance", :type => "shell", :run => "always", :inline => "systemctl stop evmserverd"
 
-    miq.vm.provision "sync",  :type => "shell", :run => "always",
+    # Now not needed since we us as hammer appliance, and sync kinda just
+    # messes stuff up
+    miq.vm.provision "sync",  :type => "shell", :run => "never",
                               :path => "vagrant_provision_appliance_sync.sh"
     miq.vm.provision "reset", :type => "shell", :run => "never",
                               :path => "vagrant_provision_appliance_reset.sh"
