@@ -9,13 +9,15 @@ of the VMs are as follows:
   but preloaded with a dummy set of data that can be exported.  It also
   includes a test script that can be used as a smoke test for all of the
   database backup/dumping strategies.
-- The `share` VM is a light appliance that is currently configured to be both
-  an NFS and SMB share for the `appliance`.  It is configured to give
+- The `share` VM is a light appliance that is currently configured to be an `NFS`
+  `SMB`, and `FTP` share for the `appliance`.  It is configured to give
   permission to the `appliance` VM those to connect via SMB and NFS at some
-  dummy mount points.
+  entry points (it also set up a swift instance, but that currently isn't
+  configured properly to work)
 
 The test script will then run a suite of all of the backup/dump strategies and
-confirm file integrity of the dumped files for local, NFS, and SMB strategies.
+confirm file integrity of the dumped files for all strategies (local, `NFS`,
+`SMB`, `FTP`, `s3` and `Swift` .
 
 
 Setup
