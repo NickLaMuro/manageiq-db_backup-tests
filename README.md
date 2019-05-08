@@ -216,7 +216,7 @@ TROUBLESHOOTING
   $ vagrant ssh appliance -c "sudo systemctl stop evmserverd"
   $ vagrant ssh appliance -c "sudo systemctl disable evmserverd"
   ```
-
+  
 * **If split backup tests are _still_ failing**
   
   As much as I have done to try an mitigate this, it does happen from time to
@@ -235,7 +235,17 @@ TROUBLESHOOTING
   fool proof since they just checking that they byte size of the file is
   "mostly" the same since it is quicker than reloading the DB... though we do
   now do that....
-
+  
+* **The first test is running indefinitely**
+  
+  I haven't been able to narrow this one down yet, but it seems like restarting
+  the test suite fixes this issue, and it only seems to happen on the first run
+  of the suite after the VM has booted.
+  
+  Any ideas as to _**WHY**_ this behavior is occurring would be appreciated,
+  but my guess is no one is actually reading this anyway... so I am probably on
+  my own for this one.
+  
 * **`Aws::S3::Errors::RequestTimeTooSkewed`**
   
   You might get this if your VM has been turned on in between shutting of your
