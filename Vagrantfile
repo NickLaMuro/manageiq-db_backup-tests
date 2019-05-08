@@ -64,21 +64,22 @@ Vagrant.configure("2") do |config|
       echo "check_file = File.join(File.dirname(__FILE__), 'db_seeding_done')" > $SEED_SCRIPT
       echo "exit if File.exist?(check_file)" >> $SEED_SCRIPT
       echo "" >> $SEED_SCRIPT
+      echo "system 'sudo systemctl start evmserverd'" >> $SEED_SCRIPT
+      echo "while User.count < 1" >> $SEED_SCRIPT
+      echo "  sleep 5 # wait for seeing on the appliance to happen" >> $SEED_SCRIPT
+      echo "end" >> $SEED_SCRIPT
+      echo "" >> $SEED_SCRIPT
       curl --silent $SEED_SCRIPT_URL >> $SEED_SCRIPT
       echo "" >> $SEED_SCRIPT
+      echo "" >> $SEED_SCRIPT
+      echo "system 'sudo systemctl stop evmserverd'" >> $SEED_SCRIPT
+      echo "system 'sudo systemctl disable evmserverd'" >> $SEED_SCRIPT
       echo "File.write(check_file, '')" >> $SEED_SCRIPT
       echo "" >> $SEED_SCRIPT
 
-      # Currently not working... don't want to fix now...
-      #
-      # For now log in to the appliance an run:
-      #
-      #     $ vmdb
-      #     $ sudo /bin/sh -c "source /etc/profile.d/evm.sh; bin/rails r tmp/bz_1592480_db_replication_script.rb"
-      #
-      # cd /var/www/miq/vmdb
-      # source /etc/profile.d/evm.sh
-      # bin/rails r $SEED_SCRIPT
+      cd /var/www/miq/vmdb
+      source /etc/profile.d/evm.sh
+      bin/rails r $SEED_SCRIPT
     SEED
   end
 
