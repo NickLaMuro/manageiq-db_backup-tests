@@ -184,14 +184,3 @@ TROUBLESHOOTING
   laptop lid, or other causes.
   
   Best to just restart the VMs with a `vagrant halt && vagrant up`
-
-
-TODO
-----
-
-- [x] Setup test script to reload the dumps to a dummy DB, and confirm proper
-  table sizes with the original.
-- [x] Test `appliance_console` commands (backup & dump)
-- [x] Test database restore
-- [x] Test table exclusions
-- [x] Test s3
