@@ -78,7 +78,7 @@ Vagrant.configure("2") do |config|
     share.vm.synced_folder ".", "/vagrant", disabled: true
     share.vm.network :private_network, :ip => '192.168.50.11'
 
-    config.vm.provision "file", :source => "./share.id_rsa.pub", :destination => "$HOME/share.id_rsa.pub"
+    share.vm.provision "file", :source => "./share.id_rsa.pub", :destination => "$HOME/share.id_rsa.pub"
 
     share.vm.provision "bootstrap", :type => "shell", 
       :inline => <<-BOOTSTRAP.gsub(/ {8}/, '')
