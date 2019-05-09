@@ -58,7 +58,7 @@ Vagrant.configure("2") do |config|
                               :path => "vagrant_provision_appliance_reset.sh"
 
     miq.vm.provision "seed", :type => "shell", :inline => <<-SEED
-      SEED_SCRIPT_URL=https://gist.githubusercontent.com/NickLaMuro/87dddcfbd549b03099f8e55f632b2b57/raw/ce8790f1037dcd32ab38a7988cca61d62c7400b6/bz_1592480_db_replication_script.rb
+      SEED_SCRIPT_URL=https://gist.githubusercontent.com/NickLaMuro/87dddcfbd549b03099f8e55f632b2b57/raw/f0f2583bb453366304d61e41f7db18091d7e7d57/bz_1592480_db_replication_script.rb
       SEED_SCRIPT=/var/www/miq/vmdb/tmp/bz_1592480_db_replication_script.rb
 
       echo "check_file = File.join(File.dirname(__FILE__), 'db_seeding_done')" > $SEED_SCRIPT
