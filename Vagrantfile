@@ -39,6 +39,28 @@ Vagrant.configure("2") do |config|
     miq.vm.synced_folder "../manageiq-appliance_console", "/vagrant/manageiq-appliance_console", rsync_opts
     miq.vm.synced_folder "./",                            "/vagrant/tests",                      rsync_opts
 
+    # Create a small disk we can add to the VM that we can stub in for `/tmp`
+    #
+    # Only make it 3MB in size (smaller than DB dump size after FS overhead)
+    fake_tmp_fstab_entry = [
+      "/dev/loop0".rjust(41),
+      "/fake_tmp".rjust(37),
+      "ext4".ljust(16),
+      "loop".ljust(15),
+      "0".ljust(8),
+      "0"
+    ].join " "
+    miq.vm.provision "mount_fake_tmp", :type => "shell", :inline => <<-MOUNT_DISK
+      dd if=/dev/zero of=/tmp/fake_tmp_fs bs=3M count=1
+      losetup /dev/loop0 /tmp/fake_tmp_fs
+      mkfs.ext4 /dev/loop0
+      mkdir /fake_tmp
+      echo "#{fake_tmp_fstab_entry}" >> /etc/fstab
+      mount /dev/loop0
+      chmod -R 777 /fake_tmp
+      chmod +t /fake_tmp
+    MOUNT_DISK
+
     ###### copy and update ssh key permissions
     miq.vm.provision "ssh_key", :type => "shell", :inline => <<-SSH_KEY
       cp /vagrant/tests/share.id_rsa /home/vagrant/.ssh/
