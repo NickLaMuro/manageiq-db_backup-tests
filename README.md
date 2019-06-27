@@ -30,7 +30,7 @@ of the VMs are as follows:
 
 The test script will then run a suite of all of the backup/dump strategies and
 confirm file integrity of the dumped files for all strategies (local, `NFS`,
-`SMB`, `FTP`, `s3` and `Swift` .
+`SMB`, `FTP`, `s3` and `Swift`).
 
 
 Usage
