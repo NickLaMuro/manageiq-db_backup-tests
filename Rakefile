@@ -13,7 +13,7 @@ VMSTATE_CMD_TEMPLATE = "VBoxManage showvminfo "                                \
 
 # ripped from vagrant virtualbox driver read_state
 def read_vm_state vmname
-  full_name = "appliance_smoketest_db_rake_tasks_#{vmname}"
+  full_name = "env_appliance_console_backups_#{vmname}"
   cmd       = VMSTATE_CMD_TEMPLATE % [full_name]
   output    = `#{cmd}`
 
@@ -118,7 +118,7 @@ namespace :test do
   end
 end
 
-file ".env" do |file|
+file "tests/.env" do |file|
   require 'io/console'
 
   puts "Setting up .env file..."

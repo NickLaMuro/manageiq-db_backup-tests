@@ -8,13 +8,13 @@
 
 # Setup keys for inter-VM communitcation to the :share VM
 _, priv_key, pub_key = [nil, nil, nil]
-unless File.exist? "share.id_rsa" and File.exist? "share.id_rsa.pub"
+unless File.exist? "tests/share.id_rsa" and File.exist? "tests/share.id_rsa.pub"
   require "vagrant/util/keypair"
 
   _, priv_key, pub_key = Vagrant::Util::Keypair.create
 
-  File.write "share.id_rsa",     priv_key
-  File.write "share.id_rsa.pub", pub_key
+  File.write "tests/share.id_rsa",     priv_key
+  File.write "tests/share.id_rsa.pub", pub_key
 end
 
 Vagrant.configure("2") do |config|
@@ -33,12 +33,12 @@ Vagrant.configure("2") do |config|
     }
 
     # TODO:  Evaluate what is and isn't needed from this
-    miq.vm.synced_folder "../awesome_spawn",              "/vagrant/awesome_spawn",              rsync_opts
-    miq.vm.synced_folder "../manageiq/lib",               "/vagrant/manageiq/lib",               :type => :rsync
-    miq.vm.synced_folder "../manageiq-gems-pending",      "/vagrant/manageiq-gems-pending",      rsync_opts
-    miq.vm.synced_folder "../manageiq-performance",       "/vagrant/manageiq-performance",       rsync_opts
-    miq.vm.synced_folder "../manageiq-appliance_console", "/vagrant/manageiq-appliance_console", rsync_opts
-    miq.vm.synced_folder "./",                            "/vagrant/tests",                      rsync_opts
+    miq.vm.synced_folder "../../awesome_spawn",              "/vagrant/awesome_spawn",              rsync_opts
+    miq.vm.synced_folder "../../manageiq/lib",               "/vagrant/manageiq/lib",               :type => :rsync
+    miq.vm.synced_folder "../../manageiq-gems-pending",      "/vagrant/manageiq-gems-pending",      rsync_opts
+    miq.vm.synced_folder "../../manageiq-performance",       "/vagrant/manageiq-performance",       rsync_opts
+    miq.vm.synced_folder "../../manageiq-appliance_console", "/vagrant/manageiq-appliance_console", rsync_opts
+    miq.vm.synced_folder "./tests",                          "/vagrant/tests",                      rsync_opts
 
     # Create a small disk we can add to the VM that we can stub in for `/tmp`
     #
@@ -76,9 +76,9 @@ Vagrant.configure("2") do |config|
     # Now not needed since we us as hammer appliance, and sync kinda just
     # messes stuff up
     miq.vm.provision "sync",  :type => "shell", :run => "never",
-                              :path => "vagrant_provision_appliance_sync.sh"
+                              :path => "provision_scripts/appliance_sync.sh"
     miq.vm.provision "reset", :type => "shell", :run => "never",
-                              :path => "vagrant_provision_appliance_reset.sh"
+                              :path => "provision_scripts/appliance_reset.sh"
 
     miq.vm.provision "seed", :type => "shell", :inline => <<-SEED
       SEED_SCRIPT_URL=https://gist.githubusercontent.com/NickLaMuro/87dddcfbd549b03099f8e55f632b2b57/raw/f0f2583bb453366304d61e41f7db18091d7e7d57/bz_1592480_db_replication_script.rb
@@ -113,7 +113,7 @@ Vagrant.configure("2") do |config|
     share.vm.synced_folder ".", "/vagrant", disabled: true
     share.vm.network :private_network, :ip => '192.168.50.11'
 
-    share.vm.provision "file", :source => "./share.id_rsa.pub", :destination => "$HOME/share.id_rsa.pub"
+    share.vm.provision "file", :source => "./tests/share.id_rsa.pub", :destination => "$HOME/share.id_rsa.pub"
 
     # TODO:  Convert this monster to a shared set of ansible playbooks and roles.
     share.vm.provision "bootstrap", :type => "shell", 
