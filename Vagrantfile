@@ -32,6 +32,7 @@ Vagrant.configure("2") do |config|
       :rsync__exclude => [".git/", "tmp/"]
     }
 
+    # TODO:  Evaluate what is and isn't needed from this
     miq.vm.synced_folder "../awesome_spawn",              "/vagrant/awesome_spawn",              rsync_opts
     miq.vm.synced_folder "../manageiq/lib",               "/vagrant/manageiq/lib",               :type => :rsync
     miq.vm.synced_folder "../manageiq-gems-pending",      "/vagrant/manageiq-gems-pending",      rsync_opts
@@ -108,12 +109,13 @@ Vagrant.configure("2") do |config|
   # External vm for hosting nfs and samba mounts
   config.vm.define :share do |share|
     share.vm.box = "maier/alpine-3.6-x86_64"
-    share.vm.guest = :tinycore
+    share.vm.guest = :tinycore  # hack to allow networking to be configured via vagrant
     share.vm.synced_folder ".", "/vagrant", disabled: true
     share.vm.network :private_network, :ip => '192.168.50.11'
 
     share.vm.provision "file", :source => "./share.id_rsa.pub", :destination => "$HOME/share.id_rsa.pub"
 
+    # TODO:  Convert this monster to a shared set of ansible playbooks and roles.
     share.vm.provision "bootstrap", :type => "shell", 
       :inline => <<-BOOTSTRAP.gsub(/ {8}/, '')
         cat share.id_rsa.pub >> .ssh/authorized_keys
