@@ -1,3 +1,16 @@
+appliance console database backups ENV
+======================================
+
+This was project is a conversion of this gist:
+
+https://gist.github.com/NickLaMuro/8438015363d90a2d2456be650a2b9bc6
+
+To a more "sane" format that isn't a flat directory.
+
+First pass there probably won't be a lot of changes besides a bit of
+organization, but expect it to standardize with other projects in the repo.
+
+
 Purpose
 -------
 
