@@ -9,7 +9,7 @@ end
 
 VMSTATE_CMD_TEMPLATE = "VBoxManage showvminfo "                                \
                          "$(VBoxManage list vms | grep %s | cut -d ' ' -f 2) " \
-                         "--machinereadable"
+                         "--machinereadable 2>&1"
 
 # ripped from vagrant virtualbox driver read_state
 def read_vm_state vmname
