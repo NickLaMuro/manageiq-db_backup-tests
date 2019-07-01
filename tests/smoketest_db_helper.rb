@@ -8,11 +8,7 @@ require_relative "./smoketest_ssh_helper.rb"
 require_relative "./smoketest_validator.rb"
 require_relative "./appliance_secondary_db.rb"
 
-miq_password_relative_path = %w[
-  bundler gems manageiq-gems-pending-*
-  lib/gems/pending/util/miq-password.rb
-]
-require Dir[File.join Gem.dir, *miq_password_relative_path].first
+require 'manageiq-password'
 
 default_root = File.join "", *%w[var www miq vmdb]
 miq_root     = if Dir.exists? File.join(*default_root)
@@ -144,12 +140,12 @@ class DbValidator
 
   DB_BACKUP_RESTORE_TEMPLATE = [
     %Q{sudo rc-service -q postgresql stop},
-    %Q{sudo /bin/bash -c 'rm -rf /var/lib/postgresql/9.5/data/*'},
-    %Q{ls %s* | sort | sudo xargs cat | sudo tar -xz -C /var/lib/postgresql/9.5/data/},
-    %Q{sudo sed -i "s/^.*\\/etc\\/manageiq\\/postgresql.conf.d.*$/listen_addresses = '*'/" /var/lib/postgresql/9.5/data/postgresql.conf},
-    %Q{sudo cp /var/lib/postgresql/9.5/data/pg_hba.conf /var/lib/postgresql/9.5/data/pg_hba.conf.bak},
-    %Q{sudo /bin/sh -c "head -n 3 /var/lib/postgresql/9.5/data/pg_hba.conf.bak > /var/lib/postgresql/9.5/data/pg_hba.conf"},
-    %Q{sudo /bin/sh -c "echo 'host all all 192.168.50.10/0 md5' >> /var/lib/postgresql/9.5/data/pg_hba.conf"},
+    %Q{sudo /bin/bash -c 'rm -rf /var/lib/postgresql/10/data/*'},
+    %Q{ls %s* | sort | sudo xargs cat | sudo tar -xz -C /var/lib/postgresql/10/data/},
+    %Q{sudo sed -i "s/^.*\\/etc\\/manageiq\\/postgresql.conf.d.*$/listen_addresses = '*'/" /var/lib/postgresql/10/data/postgresql.conf},
+    %Q{sudo cp /var/lib/postgresql/10/data/pg_hba.conf /var/lib/postgresql/10/data/pg_hba.conf.bak},
+    %Q{sudo /bin/sh -c "head -n 3 /var/lib/postgresql/10/data/pg_hba.conf.bak > /var/lib/postgresql/10/data/pg_hba.conf"},
+    %Q{sudo /bin/sh -c "echo 'host all all 192.168.50.10/0 md5' >> /var/lib/postgresql/10/data/pg_hba.conf"},
     %Q{sudo rc-service -q postgresql start}
   ].join(" && ").freeze
   def load_database_backup

@@ -22,7 +22,15 @@ Vagrant.configure("2") do |config|
 
   # Appliance VM for doing tests on
   config.vm.define :appliance do |miq|
-    miq.vm.box = "manageiq/hammer"
+    miq.vm.box = "manageiq/master"
+    # If you need help downloading this box, there is a helper script found here:
+    #
+    #   $ https://github.com/NickLaMuro/miq_tools/pull/13
+    #
+    # TODO:  Determine if it makes sense to just use these settings
+    # miq.vm.box_version = "20190629"
+    # miq.vm.box_url = "http://releases.manageiq.org/manageiq-vagrant-master-20190629-b20592c188.box"
+
     miq.vm.network :private_network, :ip => '192.168.50.10'
 
     miq.vm.synced_folder ".", "/vagrant", disabled: true
@@ -127,8 +135,11 @@ Vagrant.configure("2") do |config|
 
         echo "http://dl-cdn.alpinelinux.org/alpine/v3.4/main" >> /etc/apk/repositories
         apk update
-        apk add nfs-utils samba samba-common-tools \
-          "postgresql<9.6" "postgresql-client<9.6" "python3-dev<3.6" "python3<3.6" vsftpd
+        apk add nfs-utils samba samba-common-tools "python3-dev<3.6" "python3<3.6" vsftpd
+
+        echo "http://dl-cdn.alpinelinux.org/alpine/v3.8/main" >> /etc/apk/repositories
+        apk update
+        apk add "postgresql>9.6" "postgresql-client>9.6"
 
         # ==========  [Setup Swift User]  ==========
         adduser -D swift
@@ -675,8 +686,8 @@ Vagrant.configure("2") do |config|
         rc-update add postgresql
         rc-service postgresql start
 
-        echo "listen_addresses = '*'" >> /var/lib/postgresql/9.5/data/postgresql.conf
-        echo "host all all 192.168.50.10/0 md5" >> /var/lib/postgresql/9.5/data/pg_hba.conf
+        echo "listen_addresses = '*'" >> /var/lib/postgresql/10/data/postgresql.conf
+        echo "host all all 192.168.50.10/0 md5" >> /var/lib/postgresql/10/data/pg_hba.conf
         psql -U postgres -c "CREATE ROLE root WITH LOGIN CREATEDB SUPERUSER PASSWORD 'smartvm'" postgres
         rc-service postgresql restart
 
