@@ -266,3 +266,40 @@ TROUBLESHOOTING
   on resume).
   
   Best to just restart the VMs with a `vagrant halt && vagrant up`
+  
+* **`$ rake test` stalls when running (first time?)**
+  
+  I have hit this a few times myself, and am unable to determine what might be
+  causing this.  Possibly it is just a hiccup from moving the repo over from
+  the original gist, but one invocation I received this error:
+  
+  ```console
+  $ rake test
+  ...
+  mount.nfs: No route to host
+  umount: /tmp/miq_20190702-19855-75tw44: not mounted
+  Unable to find suitable address.
+  umount: /tmp/miq_20190702-19855-x2afd2: not mounted
+  /vagrant/tests/smoketest_ftp_helper.rb:30:in `ensure in with_connection': undefined method `close' for nil:NilClass (NoMethodError)
+          from /vagrant/tests/smoketest_ftp_helper.rb:30:in `with_connection'
+          from /vagrant/tests/smoketest_ftp_helper.rb:64:in `clear_user_directory'
+          from /vagrant/tests/smoketest_test_helper.rb:81:in `clean!'
+          from /vagrant/tests/smoketest_test_helper.rb:62:in `clean'
+          from /vagrant/tests/smoketest.rb:44:in `<main>'
+  Connection to 127.0.0.1 closed.
+  rake aborted!
+  Command failed with status (1): [vagrant ssh appliance -c "sudo -i ruby /va...]
+  /Users/nicklamuro/code/redhat/cfme_vagrant_env/env_appliance_console_backups/Rakefile:95:in `block in <top (required)>'
+  /Users/nicklamuro/.gem/ruby/2.4.2/gems/rake-12.3.2/exe/rake:27:in `<top (required)>'
+  Tasks: TOP => test
+  (See full trace by running task with --trace)
+  ```
+  
+  Which leads me to believe that the issue might be an issue with an
+  inaccessible `share` VM.  I was able to run:
+  
+  ```console
+  $ vagrant reload share
+  ```
+  
+  To resolve the issue.
