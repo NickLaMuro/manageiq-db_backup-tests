@@ -88,6 +88,18 @@ Vagrant.configure("2") do |config|
     miq.vm.provision "reset", :type => "shell", :run => "never",
                               :path => "provision_scripts/appliance_reset.sh"
 
+    # This is to allow `smartvm` to remain the password for `root`.  Required
+    # after these changes to the appliance build:
+    #
+    #   https://github.com/ManageIQ/manageiq-appliance-build/pull/426
+    #
+    # Attempted with +chage+, but didn't work.  This just changes the password
+    # once to 'vagrant', and then sets it back to 'smartvm' (default).
+    miq.vm.provision "reset_root", :type => "shell", :inline => <<-RESET_ROOT
+      echo -e "smartvm\\nvagrant\\nvagrant" | passwd --stdin root
+      echo -e "smartvm\\nsmartvm"           | passwd --stdin root
+    RESET_ROOT
+
     miq.vm.provision "seed", :type => "shell", :inline => <<-SEED
       SEED_SCRIPT_URL=https://gist.githubusercontent.com/NickLaMuro/87dddcfbd549b03099f8e55f632b2b57/raw/f0f2583bb453366304d61e41f7db18091d7e7d57/bz_1592480_db_replication_script.rb
       SEED_SCRIPT=/var/www/miq/vmdb/tmp/bz_1592480_db_replication_script.rb
