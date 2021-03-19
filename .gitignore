@@ -1,0 +1,9 @@
+# Ignore generated ssh keys
+**/*.id_rsa
+**/*.id_rsa.pub
+
+# Ignore .vagrant dirs
+.vagrant
+
+# Ignore tmp dirs
+*/tmp/*
