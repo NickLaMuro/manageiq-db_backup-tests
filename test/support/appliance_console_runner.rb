@@ -58,7 +58,7 @@ class ApplianceConsoleRunner
 
   def run_console
     status = nil
-    output_log = []
+
     PTY.spawn CONSOLE_CMD do |out, stdin, pid|
       cmd_tr = Process.detach(pid)
 
