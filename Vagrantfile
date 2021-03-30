@@ -40,13 +40,9 @@ Vagrant.configure("2") do |config|
       :rsync__exclude => [".git/", "tmp/"]
     }
 
-    # TODO:  Evaluate what is and isn't needed from this
-    miq.vm.synced_folder "../awesome_spawn",              "/vagrant/awesome_spawn",              rsync_opts
-    miq.vm.synced_folder "../manageiq/lib",               "/vagrant/manageiq/lib",               :type => :rsync
-    miq.vm.synced_folder "../manageiq-gems-pending",      "/vagrant/manageiq-gems-pending",      rsync_opts
-    miq.vm.synced_folder "../manageiq-performance",       "/vagrant/manageiq-performance",       rsync_opts
     miq.vm.synced_folder "../manageiq-appliance_console", "/vagrant/manageiq-appliance_console", rsync_opts
     miq.vm.synced_folder "./test",                        "/vagrant/test",                       rsync_opts
+    miq.vm.synced_folder "./provision_scripts",           "/vagrant/scripts",                    rsync_opts
 
     # Create a small disk we can add to the VM that we can stub in for `/tmp`
     #
