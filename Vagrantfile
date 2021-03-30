@@ -136,7 +136,7 @@ Vagrant.configure("2") do |config|
     share.vm.provision "file", :source => "./tests/share.id_rsa.pub", :destination => "$HOME/share.id_rsa.pub"
 
     # TODO:  Convert this monster to a shared set of ansible playbooks and roles.
-    share.vm.provision "bootstrap", :type => "shell", 
+    share.vm.provision "bootstrap", :type => "shell",
       :inline => <<-BOOTSTRAP.gsub(/ {8}/, '')
         cat share.id_rsa.pub >> .ssh/authorized_keys
 
@@ -152,6 +152,97 @@ Vagrant.configure("2") do |config|
         echo "http://dl-cdn.alpinelinux.org/alpine/v3.8/main" >> /etc/apk/repositories
         apk update
         apk add "postgresql>9.6" "postgresql-client>9.6"
+
+        # ==========   [Config/Run NFS]   ==========
+
+        mkdir -p /var/nfs
+        touch /var/nfs/foo
+        touch /var/nfs/bar
+        adduser -D nfsnobody
+        chown nfsnobody:nfsnobody /var/nfs
+        chmod 755 /var/nfs
+        echo "/var/nfs    192.168.50.10(rw,sync,no_root_squash,no_subtree_check)" > /etc/exports
+        rc-update add nfs
+        rc-service nfs start
+
+
+        # ==========   [Config/Run SMB]   ==========
+
+        mkdir -p /var/smb
+        chmod 0777 /var/smb
+        touch /var/smb/baz
+        touch /var/smb/qux
+
+        printf "vagrant\\nvagrant\\n" | smbpasswd -a -s vagrant
+        cp /etc/samba/smb.conf /etc/samba/smb.conf.bak
+        cat << EOF > /etc/samba/smb.conf
+        [global]
+           workgroup = WORKGROUP
+           server string = Samba Server %v
+           dos charset = cp850
+           unix charset = ISO-8859-1
+           force user = vagrant
+           log file = /var/log/samba/log.%m
+           max log size = 50
+           security = user
+
+        [share]
+           path = /var/smb
+           valid users = vagrant
+           browseable = yes
+           writeable = yes
+        EOF
+        rc-update add samba
+        rc-service samba start
+
+
+        # ==========  [Config/Run PSQL]   ==========
+
+        rc-update add postgresql
+        rc-service postgresql start
+
+        echo "listen_addresses = '*'" >> /var/lib/postgresql/10/data/postgresql.conf
+        echo "host all all 192.168.50.10/0 md5" >> /var/lib/postgresql/10/data/pg_hba.conf
+        psql -U postgres -c "CREATE ROLE root WITH LOGIN CREATEDB SUPERUSER PASSWORD 'smartvm'" postgres
+        rc-service postgresql restart
+
+
+        # ==========   [Config/Run FTP]   ==========
+
+        cat << EOF > /etc/vsftpd/vsftpd.conf
+        listen=NO
+        listen_ipv6=YES
+
+        local_enable=YES
+        local_umask=022
+        write_enable=YES
+        connect_from_port_20=YES
+
+        anonymous_enable=YES
+        anon_root=/var/nfs/ftp/pub
+        anon_umask=022
+        anon_upload_enable=YES
+        anon_mkdir_write_enable=YES
+        anon_other_write_enable=YES
+
+        pam_service_name=vsftpd
+        userlist_enable=YES
+        userlist_deny=NO
+        seccomp_sandbox=NO
+        EOF
+
+        cat << EOF > /etc/vsftpd.user_list
+        vagrant
+        anonymous
+        EOF
+
+        mkdir -p /var/nfs/ftp/pub/uploads
+        chown -R ftp:ftp /var/nfs/ftp
+        chmod -R 555 /var/nfs/ftp/pub
+        chmod 777 /var/nfs/ftp/pub/uploads
+
+        rc-update add vsftpd
+        rc-service vsftpd start
 
         # ==========  [Setup Swift User]  ==========
         adduser -D swift
