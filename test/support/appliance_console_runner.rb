@@ -2,6 +2,16 @@ require 'stringio'
 require 'pty'
 
 class ApplianceConsoleRunner
+  class Current
+    class << self
+      attr_accessor :instance
+    end
+  end
+
+  def self.current
+    Current.instance
+  end
+
   attr_reader :state, :type, :file, :io_log, :mode, :split, :finished
 
   CLEAR_CODE  = `clear`
@@ -56,6 +66,8 @@ class ApplianceConsoleRunner
     @split            = split
     @table_exclusions = table_exclusions
     @finished         = false
+
+    Current.instance  = self
   end
 
   def run_console
