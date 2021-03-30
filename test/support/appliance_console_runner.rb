@@ -62,6 +62,32 @@ class ApplianceConsoleRunner
     PTY.spawn CONSOLE_CMD do |out, stdin, pid|
       cmd_tr = Process.detach(pid)
 
+      # Output parser thread
+      output = Thread.new do
+        begin
+          while line = out.gets
+            debug "(output thread) #{line.inspect}"
+            new_input = line_parser line
+            @input += Array(new_input) if new_input
+          end
+        rescue Errno::EIO
+        end
+      end
+
+      # Input thread
+      input  = Thread.new do
+        while cmd_tr.alive?
+          if @input.empty?
+            sleep 0.5
+          else
+            sleep 1 # give the sub process a second to accept input
+            input_line = @input.shift
+            debug "(input thread) #{input_line.inspect}"
+            stdin.puts input_line
+          end
+        end
+      end
+
       # Timeout Thread
       Thread.new do
         waits_left = starting_wait
@@ -88,29 +114,6 @@ class ApplianceConsoleRunner
           debug out.read_nonblock.lines.map(&:inspect)
           debug "----- (debug thread) -----"
           Process.kill("KILL", cmd_tr.pid)
-        end
-      end
-
-      # Output parser thread
-      output = Thread.new do
-        while line = out.gets
-          debug "(output thread) #{line.inspect}"
-          new_input = line_parser line
-          @input += Array(new_input) if new_input
-        end
-      end
-
-      # Input thread
-      input  = Thread.new do
-        while cmd_tr.alive?
-          if @input.empty?
-            sleep 0.5
-          else
-            sleep 1 # give the sub process a second to accept input
-            input_line = @input.shift
-            debug "(input thread) #{input_line.inspect}"
-            stdin.puts input_line
-          end
         end
       end
 
