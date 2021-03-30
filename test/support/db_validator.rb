@@ -1,36 +1,16 @@
-require 'yaml'
-require 'erb'
-require 'shellwords'
-require 'active_record'
+require_relative './appliance_secondary_db.rb'
+require_relative './constants.rb'
+require_relative './db_filename_helper.rb'
+require_relative './db_connection.rb'
+require_relative './rake_helper.rb'
+require_relative './ssh.rb'
 
-require_relative "./smoketest_rake_helper.rb"
-require_relative "./smoketest_ssh_helper.rb"
-require_relative "./smoketest_validator.rb"
-require_relative "./appliance_secondary_db.rb"
-
-require 'manageiq-password'
-
-default_root = File.join "", *%w[var www miq vmdb]
-miq_root     = if Dir.exists? File.join(*default_root)
-                 default_root
-               else # assume running locally
-                 File.expand_path File.join(__FILE__, *%w[.. .. manageiq])
-               end
-ENV["KEY_ROOT"] = File.join miq_root, "certs"
-
-yaml = File.read File.join(miq_root, 'config', 'database.yml')
-data = YAML.load ERB.new(yaml).result
-
-configurations = { "default" => data["production"].dup }
-configurations["default"]["password"] = MiqPassword.try_decrypt(configurations["default"]["password"])
-
-ActiveRecord::Base.configurations = configurations
+DbConnection.configure
 
 class DbValidator
-  include TestHelper
-  include MountHelper
+  RAKE_RESTORE_PATCHES = "/vagrant/test/support/appliance_rake_restore_patches.rb"
 
-  RAKE_RESTORE_PATCHES = "/vagrant/tests/appliance_rake_restore_patches.rb"
+  include ::DbFilenameHelper
 
   attr_reader :dbname, :restore_type, :rake_location, :split
 
@@ -58,7 +38,7 @@ class DbValidator
     @defaults ||= default_connection.counts
   end
 
-  def initialize db = :default 
+  def initialize db = :default
     @db = db
 
     # Default DB doesn't need to be restored
@@ -104,14 +84,19 @@ class DbValidator
 
   def initialize_db_configuration
     unless @db == :default
-      new_configuration = ActiveRecord::Base.configurations['default'].dup
+      configs           = ActiveRecord::Base.configurations
+      new_configuration = configs["default"].dup
       new_configuration["database"] = dump_database_name if @db =~ /dump/
-      if not split and not TestConfig.skip_restore and restore_type == "backup"
+      if not split and restore_type == "backup"
         new_configuration["port"]   = "5555"
       else
         new_configuration["host"]   = "192.168.50.11"
       end
-      ActiveRecord::Base.configurations[@db.to_s] = new_configuration
+
+      ActiveRecord::Base.configurations = {
+        @db.to_s  => new_configuration,
+        "default" => configs["default"]
+      }
     end
   end
 
@@ -128,7 +113,7 @@ class DbValidator
   def upload_local_db
     dir = @db =~ /backup/ ? "db_backup" : "db_dump"
     dir = File.dirname File.join(dir, @db.split(File::SEPARATOR) - VMDB_DIR_ARRAY)
-    SSHHelper.with_session do |ssh|
+    SSH.with_session do |ssh|
       Dir["/var/www/miq/vmdb/#{@db}*"].each do |file|
         ssh.scp.upload! file, "/home/vagrant/"
       end
@@ -149,9 +134,9 @@ class DbValidator
     %Q{sudo rc-service -q postgresql start}
   ].join(" && ").freeze
   def load_database_backup
-    if split || TestConfig.skip_restore
+    if split
       filepath = share_filepath_for :backup
-      SSHHelper.run_commands DB_BACKUP_RESTORE_TEMPLATE % filepath
+      SSH.run_commands DB_BACKUP_RESTORE_TEMPLATE % filepath
     else
       ApplianceSecondaryDB.reset_db
       RakeHelper.run_rake :restore, rake_location, @db,
@@ -170,13 +155,13 @@ class DbValidator
     %Q{ls %s* | sort | sudo xargs cat | sudo pg_restore -d %s}
   ].join(" && ").freeze
   def load_database_dump
-    if split || TestConfig.skip_restore
+    if split
       filepath = share_filepath_for :dump
-      SSHHelper.run_commands DB_BACKUP_DUMP_TEMPLATE % [dbname, dbname, filepath, dbname]
+      SSH.run_commands DB_BACKUP_DUMP_TEMPLATE % [dbname, dbname, filepath, dbname]
     else
       RakeHelper.run_rake :restore, rake_location, @db,
                           :dbname   => dbname,
-                          :hostname => SHARE_IP,
+                          :hostname => ::SHARE_IP,
                           :username => "root",
                           :password => "smartvm"
     end
@@ -201,82 +186,5 @@ class DbValidator
   def set_restore_vars
     @dbname = dump_database_name
     @rake_location, @restore_type, _, @split = parse_db_filename dbname
-  end
-end
-
-class DbTestCase
-  include TestHelper
-
-  attr_reader :backups_to_validate
-
-  def self.validate *dbs
-    new(*dbs).validate
-  end
-
-  # Similar to the above, but doesn't run inside of a `testing` block
-  def self.valid_database? *dbs
-    new(*dbs).valid_databases?
-  end
-
-  def self.no_custom_attributes? *dbs
-    new(*dbs).no_custom_attributes?
-  end
-
-  def initialize *dbs
-    @backups_to_validate = dbs
-  end
-
-  def validate
-    testing validation_message do
-      valid_databases?
-    end
-  end
-
-  def valid_databases?
-    backups_to_validate.each { |db| assert_valid_database db }
-  end
-
-  def no_custom_attributes?
-    backups_to_validate.each { |db| assert_no_custom_attributes db }
-  end
-
-  private
-
-  def validation_message
-    message = nil
-    backups_to_validate.each do |filename|
-      location, type, _ = parse_db_filename filename
-
-      new_message = "#{location} #{type}s are valid"
-      if message && message != new_message
-        raise ArgumentError, "use one backup type/location at a time"
-      end
-      message ||= new_message
-    end
-    message
-  end
-
-  def assert_no_custom_attributes backup_file
-    DbValidator.no_custom_attributes?(backup_file) || fail("custom_attributes is present in #{backup_file}")
-  end
-
-  def assert_valid_database backup_file
-    if run_db_validation? backup_file
-      DbValidator.validate(backup_file) || raise("invalid DB (call 'fail' below)")
-    end
-  rescue => e
-    fail <<-ERR.gsub(/^ {4}/, '') + e.backtrace.map { |l| "    #{l}" }.join("\n")
-      #{backup_file} was not a valid database
-        
-        Error:  #{e.message}
-    ERR
-  end
-
-  def run_db_validation? db_file
-    !(TestConfig.skip_backups  && db_file =~ /(console_)?(split|full)_(local|nfs|smb)_backup\.tar\.gz/) &&
-      !(TestConfig.skip_dumps  && db_file =~ /(console_)?(split|full)_(local|nfs|smb)_dump\.tar\.gz/)   &&
-      !(TestConfig.skip_splits && db_file =~ /(console_)?split_(local|nfs|smb)_(dump|backup)\.tar\.gz/) &&
-      (TestConfig.include_s3    || !(db_file =~ /(console_)?(split|full)_s3_(dump|backup)\.tar\.gz/))
-      (TestConfig.include_swift || !(db_file =~ /(console_)?(split|full)_swift_(dump|backup)\.tar\.gz/))
   end
 end

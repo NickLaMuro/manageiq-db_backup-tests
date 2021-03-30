@@ -1,0 +1,38 @@
+require "rake/clean"
+require "rake/testtask"
+
+# -----------------------------------------------
+#                      Clean
+# -----------------------------------------------
+
+CLEAN.include "/var/www/miq/vmdb/tmp/subdir"
+CLEAN.include "/var/www/miq/vmdb/*.tar.gz*"
+
+namespace :clean do
+  task :mounts do
+    require File.join(__dir__, "support", "mount_helper")
+
+    %i[nfs smb].each do |mount_type|
+      MountHelper.run_in_mount mount_type do |mnt_dir|
+        rm_rf File.join(mnt_dir, "db_backup")
+        rm_rf File.join(mnt_dir, "db_dump")
+
+        # Quicker to just do a `rm -rf` from the mount most likely
+        uploads_dir = [mnt_dir, "ftp", "pub", "uploads"]
+        rm_rf File.join(*(uploads_dir + ["db_backup"])) if mount_type == :nfs
+        rm_rf File.join(*(uploads_dir + ["db_dump"]))   if mount_type == :nfs
+      end
+    end
+  end
+end
+
+Rake::Task["clean"].enhance(["clean:mounts"])
+
+# -----------------------------------------------
+#                      Test
+# -----------------------------------------------
+
+Rake::TestTask.new(:test) do |t|
+  t.libs       << __dir__
+  t.test_files  = FileList["./**/*_test.rb"]
+end

@@ -1,7 +1,7 @@
 require 'net/ssh'
 require 'net/scp'
 
-class SSHHelper
+class SSH
   SHARE_HOST = "192.168.50.11".freeze
   SHARE_USER = "vagrant".freeze
   SHARE_KEY  = "/home/vagrant/.ssh/share.id_rsa".freeze
@@ -75,3 +75,4 @@ class SSHHelper
     end
   end
 end
+

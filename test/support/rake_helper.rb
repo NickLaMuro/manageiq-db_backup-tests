@@ -3,8 +3,7 @@ require 'uri'
 require 'fileutils'
 require 'singleton'
 
-require_relative "./smoketest_validator.rb"
-require_relative "./smoketest_db_helper.rb"
+require_relative './vmdb_helper.rb'
 
 class RakeHelper
   ACTION_MAP = {
@@ -18,6 +17,7 @@ class RakeHelper
   }
 
   include Singleton
+  include DbFilenameHelper
 
   def self.test type, location, file
     action, opts = ACTION_MAP[type]
@@ -88,7 +88,7 @@ class RakeRunner
 
   MSG
 
-  include TestHelper
+  include VmdbHelper
 
   attr_reader :file, :action, :location, :opts, :rake_cmd_args, :verbose, :debug
 
@@ -183,7 +183,7 @@ class RakeRunner
 
   def generic_remote_args params = {}
     path       = params[:path] || ''
-    host       = params[:host] || SHARE_IP
+    host       = params[:host] || ::SHARE_IP
     user, pass = params[:auth] || DEFAULT_AUTH
     uri        = URI::Generic.new *URI.split("#{location}://#{host}#{path}")
     uri.path  << "/#{file}"                if root_file_in_uri?
@@ -234,94 +234,5 @@ class RakeRunner
 
   def namespaced_file_in_uri?
     opts[:file_in_uri] && (TestConfig.restore_from_original_dir || ![:nfs, :smb].include?(location))
-  end
-end
-
-class RakeTestCase < RakeRunner
-  SPLIT_SIZE          = 2 * MEGABYTES
-  RAKE_TMPDIR_PATCHES = "/vagrant/tests/appliance_tmpdir_patches.rb"
-
-  include MountHelper
-  include Assertions
-
-  def initialize *args
-    super
-
-    if @opts.delete(:fake_tmp) { false }
-      @rake_cmd_args[:require] ||= nil
-      @rake_cmd_args[:require]   = Array(@rake_cmd_args[:require])
-      @rake_cmd_args[:require]  << RAKE_TMPDIR_PATCHES
-    end
-  end
-
-  def split?
-    @opts[:split]
-  end
-
-  def print_command
-    @redacted = true
-    build_command
-  ensure
-    @redacted = false
-  end
-
-  def run_test
-    testing print_command do
-      run_command
-      check_sizes
-    end
-  end
-
-  def check_sizes
-    run_in_mount location do
-      mount_file = File.join(*[@mount_point, namespaced_file].compact)
-      if split?
-        original_size = reference_db_size
-        assert_split_files mount_file, SPLIT_SIZE, reference_db_size, error_margin
-      else
-        assert_file_exists mount_file
-        save_db_size mount_file
-      end
-    end
-
-    download_for_validation
-  end
-
-  private
-
-  def task_args
-    args  = super
-    args += " -b 2M" if split?
-    args
-  end
-
-  def reference_db_size
-    reference_filename = file.sub /split/, 'full'
-    RakeHelper.backup_sizes[reference_filename]
-  end
-
-  def save_db_size filepath
-    RakeHelper.backup_sizes[file] = get_file_size filepath
-  end
-
-  def error_margin
-    margin_of_error_for action, location
-  end
-
-  def download_for_validation
-    case location
-    # Move generated files on nfs/smb mounts to root to allow restore to
-    # work, since it currently can't work with nested directories on mounts.
-    when :nfs, :smb then
-      run_in_mount(location) do |mnt|
-        source = File.join mnt, "#{namespaced_file}*"
-        FileUtils.cp_r Dir[source], mnt
-      end unless TestConfig.restore_from_original_dir
-    # Download DB to NFS share for validation
-    when :s3 then
-      run_in_mount(:nfs) { |mnt| S3Helper.download_to mnt, namespaced_file }
-    when :swift then
-      run_in_mount(:nfs) { |mnt| SwiftHelper.download_to mnt, namespaced_file }
-    end
   end
 end

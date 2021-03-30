@@ -8,13 +8,13 @@
 
 # Setup keys for inter-VM communitcation to the :share VM
 _, priv_key, pub_key = [nil, nil, nil]
-unless File.exist? "tests/share.id_rsa" and File.exist? "tests/share.id_rsa.pub"
+unless File.exist? "test/share.id_rsa" and File.exist? "test/share.id_rsa.pub"
   require "vagrant/util/keypair"
 
   _, priv_key, pub_key = Vagrant::Util::Keypair.create
 
-  File.write "tests/share.id_rsa",     priv_key
-  File.write "tests/share.id_rsa.pub", pub_key
+  File.write "test/share.id_rsa",     priv_key
+  File.write "test/share.id_rsa.pub", pub_key
 end
 
 Vagrant.configure("2") do |config|
@@ -46,7 +46,7 @@ Vagrant.configure("2") do |config|
     miq.vm.synced_folder "../manageiq-gems-pending",      "/vagrant/manageiq-gems-pending",      rsync_opts
     miq.vm.synced_folder "../manageiq-performance",       "/vagrant/manageiq-performance",       rsync_opts
     miq.vm.synced_folder "../manageiq-appliance_console", "/vagrant/manageiq-appliance_console", rsync_opts
-    miq.vm.synced_folder "./tests",                          "/vagrant/tests",                      rsync_opts
+    miq.vm.synced_folder "./test",                        "/vagrant/test",                       rsync_opts
 
     # Create a small disk we can add to the VM that we can stub in for `/tmp`
     #
@@ -72,7 +72,7 @@ Vagrant.configure("2") do |config|
 
     ###### copy and update ssh key permissions
     miq.vm.provision "ssh_key", :type => "shell", :inline => <<-SSH_KEY
-      cp /vagrant/tests/share.id_rsa /home/vagrant/.ssh/
+      cp /vagrant/test/share.id_rsa /home/vagrant/.ssh/
       chmod 0700 /home/vagrant/.ssh/share.id_rsa
       chown vagrant:vagrant /home/vagrant/.ssh/share.id_rsa
     SSH_KEY
@@ -133,7 +133,7 @@ Vagrant.configure("2") do |config|
     share.vm.synced_folder ".", "/vagrant", disabled: true
     share.vm.network :private_network, :ip => '192.168.50.11'
 
-    share.vm.provision "file", :source => "./tests/share.id_rsa.pub", :destination => "$HOME/share.id_rsa.pub"
+    share.vm.provision "file", :source => "./test/share.id_rsa.pub", :destination => "$HOME/share.id_rsa.pub"
 
     # TODO:  Convert this monster to a shared set of ansible playbooks and roles.
     share.vm.provision "bootstrap", :type => "shell",
