@@ -1,7 +1,8 @@
+require 'stringio'
 require 'pty'
 
 class ApplianceConsoleRunner
-  attr_reader :state, :type, :file, :mode, :split, :finished
+  attr_reader :state, :type, :file, :io_log, :mode, :split, :finished
 
   CLEAR_CODE  = `clear`
   SMB_CREDS   = ["vagrant", "vagrant"].freeze
@@ -49,6 +50,7 @@ class ApplianceConsoleRunner
     @state            = nil
     @input            = []
     @type             = type
+    @io_log           = StringIO.new
     @mode             = mode
     @file             = localize file
     @split            = split
@@ -253,6 +255,7 @@ class ApplianceConsoleRunner
   end
 
   def debug input
+    @io_log.puts input
     puts input if false
   end
 end
