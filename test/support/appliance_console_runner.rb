@@ -7,7 +7,7 @@ class ApplianceConsoleRunner
   SMB_CREDS   = ["vagrant", "vagrant"].freeze
   FTP_CREDS   = SMB_CREDS
   FTP_ANON    = ["", ""].freeze
-  CONSOLE_CMD = "/usr/local/bin/appliance_console".freeze
+  CONSOLE_CMD = "/opt/manageiq/manageiq-gemset/bin/appliance_console".freeze
 
   STATE_OUTPUT_LINES = {
     "Advanced Setting"               => :main_menu,
