@@ -165,7 +165,11 @@ class ApplianceConsoleRunner
   end
 
   def line_parser line
-    return "" if line =~ PRESS_ANY_KEY_REGEXP
+    if line =~ PRESS_ANY_KEY_REGEXP
+      @state = nil
+      return ""
+    end
+
     case state
     when :main_menu
       menu_option = finished ? :quit : type
