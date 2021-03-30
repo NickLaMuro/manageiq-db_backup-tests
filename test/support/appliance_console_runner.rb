@@ -34,15 +34,6 @@ class ApplianceConsoleRunner
     :restore => /^(?<OPTION_NUMBER>\d*)\).*Restore Database.*$/,
     :quit    => /^(?<OPTION_NUMBER>\d*)\).*Quit.*$/
   }.freeze
-  IO_MENU_OPTION_REGEXPS = {
-    :local   => /^(?<OPTION_NUMBER>\d*)\).*Local file.*$/,
-    :nfs     => /^(?<OPTION_NUMBER>\d*)\).*Network File System.*$/,
-    :smb     => /^(?<OPTION_NUMBER>\d*)\).*Samba.*$/,
-    :s3      => /^(?<OPTION_NUMBER>\d*)\).*Amazon S3.*$/,
-    :ftp     => /^(?<OPTION_NUMBER>\d*)\).*File Transfer Protocol.*$/,
-    :swift   => /^(?<OPTION_NUMBER>\d*)\).*OpenStack Swift.*$/,
-    :cancel  => /^(?<OPTION_NUMBER>\d*)\).*Cancel.*$/,
-  }.freeze
 
   def self.backup file, mode = :local, split = nil
     new(:backup, file, mode, split).run_console
@@ -191,11 +182,8 @@ class ApplianceConsoleRunner
       @state = nil if match
       match && match[:OPTION_NUMBER]
     when :io_menu
-      match = line.match IO_MENU_OPTION_REGEXPS[io_key]
-      if match
-        @state = nil
-        inject_input match[:OPTION_NUMBER]
-      end
+      @state = nil
+      inject_input unless @finished
     else # state change check
       # Some of the menu prompts come right after a clear, and so `out.gets`
       # doesn't pick that up properly as a seperate line.  Split will return
@@ -207,28 +195,28 @@ class ApplianceConsoleRunner
     end
   end
 
-  def inject_input input_number
+  def inject_input
     @finished      = true
-    split_answers  = split ? ["y", split] : ["n"]
     exclude_tables = if @table_exclusions.empty?
                        ["n"]
                      else
                        ["y"] + @table_exclusions + [""]
                      end
 
-    inject  = [input_number]
-    inject << file
-    inject << @uri           unless mode == :local
-    inject += SMB_CREDS      if mode == :smb
-    inject += aws_input      if mode == :s3
-    inject += FTP_CREDS      if mode == :ftp
-    inject += FTP_ANON       if mode == :ftp_anonymous
-    inject += swift_input    if mode == :swift
+    if [:smb, :nfs].include? mode
+      inject = [file]
+    else
+      inject = [file]
+    end
+
+    # inject += SMB_CREDS      if mode == :smb
+    # inject += aws_input      if mode == :s3
+    # inject += FTP_CREDS      if mode == :ftp
+    # inject += FTP_ANON       if mode == :ftp_anonymous
+    # inject += swift_input    if mode == :swift
     inject += exclude_tables if type == :dump
-    inject += split_answers
     inject += ["n", "y"]     if type == :restore && mode == :local
                              # ^ don't delete backup (but answer)
-
     inject
   end
 

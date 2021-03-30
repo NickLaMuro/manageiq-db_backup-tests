@@ -233,7 +233,7 @@ class RakeRunner
   end
 
   def root_file_in_uri?
-    opts[:file_in_uri] && false
+    opts[:file_in_uri] && false && [:nfs, :smb].include?(location)
   end
 
   def namespaced_file_in_uri?
