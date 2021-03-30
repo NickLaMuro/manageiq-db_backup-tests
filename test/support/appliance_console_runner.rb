@@ -10,10 +10,10 @@ class ApplianceConsoleRunner
   CONSOLE_CMD = "/usr/local/bin/appliance_console".freeze
 
   STATE_OUTPUT_LINES = {
-    "Advanced Setting"        => :main_menu,
-    "Backup Output File Name" => :io_menu,
-    "Dump Output File Name"   => :io_menu,
-    "Restore Database File"   => :io_menu
+    "Advanced Setting"               => :main_menu,
+    "Backup Output File Destination" => :io_menu,
+    "Create Database Dump"           => :io_menu,
+    "Create Database Backup"         => :io_menu
   }.freeze
 
   PRESS_ANY_KEY_REGEXP = /^Press any key to continue.*$/.freeze
