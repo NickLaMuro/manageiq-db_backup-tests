@@ -96,6 +96,20 @@ class ApplianceConsoleRunner
           sleep 2
         end
         if cmd_tr.alive?
+          eof_wait         = 0
+          remaining_output = ""
+
+          until out.eof? || eof_wait > 5
+            extra_out = out.read_nonblock(1000)
+
+            if extra_out != ""
+              remaining_output << extra_out
+            else
+              eof_wait += 1
+              sleep 2
+            end
+          end
+
           debug "----- (debug thread) -----"
           debug input.backtrace
           debug "--------------------------"
@@ -111,7 +125,7 @@ class ApplianceConsoleRunner
           debug "@finished:          #{@finished.inspect}"
           debug "--------------------------"
           debug "remaining output...."
-          debug out.read_nonblock.lines.map(&:inspect)
+          debug remaining_output.lines.map(&:inspect)
           debug "----- (debug thread) -----"
           Process.kill("KILL", cmd_tr.pid)
         end
