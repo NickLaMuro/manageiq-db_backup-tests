@@ -53,6 +53,12 @@ task :start do
   end
 end
 
+desc "Sync the code"
+task :sync => [:start] do
+  sh "vagrant rsync appliance"
+  sh VAGRANT_SSH_CMD % [ "appliance", "sudo -i /bin/bash /vagrant/scripts/appliance_sync.sh" ]
+end
+
 desc "Stop the boxes"
 task :stop do
   vms_to_stop = VMS.select { |vmname| vm_running? vmname }
