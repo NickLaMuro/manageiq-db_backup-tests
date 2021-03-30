@@ -71,7 +71,6 @@ task :stop do
 end
 task :halt => :stop
 
-
 desc "Destroy the boxes"
 task :destroy do
   exec "vagrant destroy --force"
@@ -95,8 +94,8 @@ namespace :reset do
 end
 
 desc "Run the tests"
-task :test => [:setup, "test:test_args"] do
-  test_cmd  = "sudo -i ruby /vagrant/tests/smoketest.rb "
+task :test => ["test:test_args"] do
+  test_cmd  = "sudo -i rake --trace --rakefile /vagrant/test/Rakefile "
   test_cmd << @test_args.join(" ")
   sh VAGRANT_SSH_CMD % [ "appliance", test_cmd ]
 end
@@ -104,23 +103,13 @@ end
 namespace :test do
   # Setup the @test_args var
   task :test_args do
-    # @test_args = ["--restore-from-orig"]
-    @test_args = ["--clean"]
+    @test_args = ["clean", "test"]
   end
 
-  desc "Skip S3 specs (run prior to `rake test`)"
-  task :no_s3 => :test_args do
-    @test_args << "--no-s3"
-  end
-
-  desc "Skip Swift specs (run prior to `rake test`)"
-  task :no_swift => :test_args do
-    @test_args << "--no-swift"
-  end
-
-  desc "Skip cleaning process (run prior to `rake test`)"
-  task :no_clean => :test_args do
-    @test_args.reject { |arg| arg == "--clean" }
+  desc "Run only local backup tests"
+  task :local => :test_args do
+    @test_args << "TEST=/vagrant/test/local_backup_test.rb"
+    Rake::Task["test"].invoke
   end
 end
 
