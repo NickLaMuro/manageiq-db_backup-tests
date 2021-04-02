@@ -111,6 +111,18 @@ namespace :test do
     @test_args << "TEST=/vagrant/test/local_backup_test.rb"
     Rake::Task["test"].invoke
   end
+
+  desc "Run only NFS backup tests"
+  task :nfs => :test_args do
+    @test_args << "TEST=/vagrant/test/nfs_backup_test.rb"
+    Rake::Task["test"].invoke
+  end
+
+  desc "Run only SMB backup tests"
+  task :smb => :test_args do
+    @test_args << "TEST=/vagrant/test/smb_backup_test.rb"
+    Rake::Task["test"].invoke
+  end
 end
 
 file "tests/.env" do |file|
