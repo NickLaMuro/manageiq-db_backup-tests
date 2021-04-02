@@ -1,4 +1,5 @@
 APPLIANCE_CONSOLE_DIR=$(ls -d /opt/manageiq/manageiq-gemset/gems/manageiq-appliance_console-* | tail -n 1)
+GEMS_PENDING_CONSOLE_DIR=$(ls -d /opt/manageiq/manageiq-gemset/gems/manageiq-gems-pending-* | tail -n 1)
 
 ###### manageiq changes
 # cp /vagrant/manageiq/lib/evm_database_ops.rb \
@@ -29,3 +30,7 @@ cp /vagrant/manageiq-appliance_console/lib/manageiq/appliance_console/postgres_a
   $APPLIANCE_CONSOLE_DIR/lib/manageiq/appliance_console/postgres_admin.rb
 cp /vagrant/manageiq-appliance_console/locales/appliance/en.yml \
   $APPLIANCE_CONSOLE_DIR/locales/appliance/en.yml
+
+###### manageiq-gems-pending changes
+cp /vagrant/manageiq-gems-pending/lib/gems/pending/util/mount/miq_generic_mount_session.rb \
+  $GEMS_PENDING_CONSOLE_DIR/lib/gems/pending/util/mount/miq_generic_mount_session.rb

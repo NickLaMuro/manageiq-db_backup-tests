@@ -41,6 +41,7 @@ Vagrant.configure("2") do |config|
     }
 
     miq.vm.synced_folder "../manageiq-appliance_console", "/vagrant/manageiq-appliance_console", rsync_opts
+    miq.vm.synced_folder "../manageiq-gems-pending",      "/vagrant/manageiq-gems-pending",      rsync_opts
     miq.vm.synced_folder "./test",                        "/vagrant/test",                       rsync_opts
     miq.vm.synced_folder "./provision_scripts",           "/vagrant/scripts",                    rsync_opts
 
