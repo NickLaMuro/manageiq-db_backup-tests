@@ -233,10 +233,10 @@ class RakeRunner
   end
 
   def root_file_in_uri?
-    opts[:file_in_uri] && (!TestConfig.restore_from_original_dir && [:nfs, :smb].include?(location))
+    opts[:file_in_uri] && false
   end
 
   def namespaced_file_in_uri?
-    opts[:file_in_uri] && (TestConfig.restore_from_original_dir || ![:nfs, :smb].include?(location))
+    opts[:file_in_uri] && [:nfs, :smb].include?(location)
   end
 end
