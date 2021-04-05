@@ -224,9 +224,11 @@ class RakeRunner
     @namespaced_file = if location == :local
                          file
                        else
-                         _, type, _ = parse_db_filename file
-                         folder = type == "backup" ? "db_backup" : "db_dump"
-                         File.join(folder, file)
+                         basename    = File.basename file
+                         _, type, __ = parse_db_filename basename
+                         folder      = type == "backup" ? "db_backup" : "db_dump"
+
+                         File.join(folder, basename)
                        end
   end
 
