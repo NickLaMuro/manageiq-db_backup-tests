@@ -4,6 +4,7 @@ require 'fileutils'
 require 'singleton'
 
 require_relative './vmdb_helper.rb'
+require_relative './db_filename_helper.rb'
 
 class RakeHelper
   ACTION_MAP = {
@@ -89,6 +90,7 @@ class RakeRunner
   MSG
 
   include VmdbHelper
+  include DbFilenameHelper
 
   attr_reader :file, :action, :location, :opts, :rake_cmd_args, :verbose, :debug
 
