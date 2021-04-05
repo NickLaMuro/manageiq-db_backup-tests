@@ -220,7 +220,7 @@ class RakeRunner
   end
 
   def namespaced_file
-    return @namespaced_file if @namespaced_file
+    return @namespaced_file if defined?(@namespaced_file)
     @namespaced_file = if location == :local
                          file
                        else
