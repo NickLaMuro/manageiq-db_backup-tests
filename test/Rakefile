@@ -34,5 +34,5 @@ Rake::Task["clean"].enhance(["clean:mounts"])
 
 Rake::TestTask.new(:test) do |t|
   t.libs       << __dir__
-  t.test_files  = FileList["./**/*_test.rb"]
+  t.test_files  = FileList["#{__dir__}/**/*_test.rb"]
 end
