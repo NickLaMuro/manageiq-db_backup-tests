@@ -115,7 +115,7 @@ class RakeRunner
       pipe.close
       status = $?
     end
-    status.success? || fail(CMD_FAILED_PROMPT + out.string)
+    status.success? || fail("#{CMD_FAILED_PROMPT}$ #{wrapped_cmd}\n\n#{out.string}")
   end
 
   private
