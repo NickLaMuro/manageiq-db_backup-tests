@@ -29,7 +29,7 @@ class LocalBackupTest < BaseBackupTest
   end
 
   def test_local_database_dump_excluding_custom_attributes
-    console_local_dump_file_without_ca = "console_full_local_dump_without_custom_attributes.tar.gz"
+    console_local_dump_file_without_ca = "console_partial_local_dump_without_custom_attributes.tar.gz"
 
     ApplianceConsoleRunner.dump_with_no_custom_attributes console_local_dump_file_without_ca
 
