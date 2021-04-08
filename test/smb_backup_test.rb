@@ -7,7 +7,11 @@ class SMBBackupTest < BaseBackupTest
 
   def test_smb_database_backup
     console_smb_backup_file = "console_full_smb_backup.tar.gz"
-    ApplianceConsoleRunner.backup console_smb_backup_file, :smb
+
+    run_in_mount :smb do |mount_point|
+      mount_file = File.join(mount_point, "db_backup", console_smb_backup_file)
+      ApplianceConsoleRunner.backup mount_file, :smb
+    end
 
     run_in_mount :smb do |mount_point|
       mount_file = File.join(mount_point, "db_backup", console_smb_backup_file)
@@ -20,7 +24,10 @@ class SMBBackupTest < BaseBackupTest
   def test_smb_database_dump
     console_smb_dump_file = "console_full_smb_dump.tar.gz"
 
-    ApplianceConsoleRunner.dump console_smb_dump_file, :smb
+    run_in_mount :smb do |mount_point|
+      mount_file = File.join(mount_point, "db_dump", console_smb_dump_file)
+      ApplianceConsoleRunner.dump mount_file, :smb
+    end
 
     run_in_mount :smb do |mount_point|
       mount_file = File.join(mount_point, "db_dump", console_smb_dump_file)
@@ -32,7 +39,11 @@ class SMBBackupTest < BaseBackupTest
 
   def test_smb_database_dump_excluding_custom_attributes
     console_smb_dump_file_without_ca = "console_partial_smb_dump_without_custom_attributes.tar.gz"
-    ApplianceConsoleRunner.dump_with_no_custom_attributes console_smb_dump_file_without_ca, :smb
+
+    run_in_mount :smb do |mount_point|
+      mount_file = File.join(mount_point, "db_dump", console_smb_dump_file_without_ca)
+      ApplianceConsoleRunner.dump_with_no_custom_attributes mount_file, :smb
+    end
 
     run_in_mount :smb do |mount_point|
       mount_file = File.join(mount_point, "db_dump", console_smb_dump_file_without_ca)
