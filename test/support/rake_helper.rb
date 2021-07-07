@@ -99,7 +99,7 @@ class RakeRunner
     @action        = action
     @location      = location
     @opts          = opts
-    @debug         = @opts.fetch(:args, {}).delete(:debug)
+    @debug         = @opts.fetch(:args, {}).delete(:debug) || ENV["TEST_DEBUG"]
     @verbose       = @opts.fetch(:args, {}).delete(:verbose)
     @rake_cmd_args = @opts.fetch(:args, {}).delete(:rake_cmd_args) || {}
 
@@ -108,6 +108,12 @@ class RakeRunner
 
   def run_command
     out, status = [StringIO.new, nil]
+
+    if debug
+      puts "running rake..."
+      puts "  $ #{wrapped_cmd}"
+    end
+
     run_in_vmdb do
       out_data, pipe = IO.pipe
       Thread.new { IO.copy_stream out_data, out }

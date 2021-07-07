@@ -71,7 +71,7 @@ class ApplianceConsoleRunner
       output = Thread.new do
         begin
           while line = out.gets
-            debug "(output thread) #{line.inspect}"
+            debug "(output thread) #{line.chomp.inspect}"
             new_input = line_parser line
             @input += Array(new_input) if new_input
           end
@@ -87,7 +87,7 @@ class ApplianceConsoleRunner
           else
             sleep 1 # give the sub process a second to accept input
             input_line = @input.shift
-            debug "(input thread) #{input_line.inspect}"
+            debug "(input thread) #{input_line.chomp.inspect}"
             stdin.puts input_line
           end
         end
@@ -170,6 +170,8 @@ class ApplianceConsoleRunner
   end
 
   def line_parser line
+    # debug line.split(CLEAR_CODE).last.strip.inspect
+    debug "  state: #{state.inspect}"
     if line =~ PRESS_ANY_KEY_REGEXP
       @state = nil
       return ""
@@ -254,8 +256,8 @@ class ApplianceConsoleRunner
     end
   end
 
-  def debug input
+  def debug input = ""
     @io_log.puts input
-    puts input if false
+    puts input if ENV["TEST_DEBUG"]
   end
 end

@@ -50,6 +50,12 @@ class DbValidator
   end
 
   def matches_origial?
+    debug
+    debug
+    debug ".matches_origial?"
+    debug "  #{counts.inspect}"
+    debug "  #{self.class.defaults.inspect}"
+    debug
     counts == self.class.defaults
   end
 
@@ -76,7 +82,7 @@ class DbValidator
 
   def with_connection
     ActiveRecord::Base.establish_connection @db.to_sym
-    # puts ActiveRecord::Base.connection_config.inspect
+    debug ActiveRecord::Base.connection_config.inspect
     yield
   ensure
     ActiveRecord::Base.remove_connection
@@ -186,5 +192,9 @@ class DbValidator
   def set_restore_vars
     @dbname = dump_database_name
     @rake_location, @restore_type, _, @split = parse_db_filename dbname
+  end
+
+  def debug input = ""
+    puts input if ENV["TEST_DEBUG"]
   end
 end

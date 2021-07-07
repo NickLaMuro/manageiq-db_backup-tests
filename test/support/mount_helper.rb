@@ -11,6 +11,7 @@ module MountHelper
   def run_in_mount mount_type
     if mount_cmd = MOUNT_TYPE_STRINGS[mount_type]
       @mount_point = Dir.mktmpdir "miq_"
+      puts "$ #{mount_cmd % @mount_point}" if ENV["TEST_DEBUG"]
       system mount_cmd % @mount_point
     end
 

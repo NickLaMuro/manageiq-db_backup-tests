@@ -25,18 +25,25 @@ class ApplianceSecondaryDB
   end
 
   def self.run_cmd cmd
-    cmd = %Q{su vagrant -lc \"#{cmd}\"} if Etc.getlogin == "vagrant"
-    system cmd, [:out, :err] => File::NULL
+    cmd         = %Q{su vagrant -lc \"#{cmd}\"} if Etc.getlogin == "vagrant"
+    cmd_options = ENV["TEST_DEBUG"] ? {} : {[:out, :err] => File::NULL}
+
+    puts "$ #{cmd}" if ENV["TEST_DEBUG"]
+
+    system cmd, cmd_options
   end
 
   def self.rebuild_data_dir
-    rm_rf   Dir["#{DATA_DIR}/*"]
-    mkdir_p DATA_DIR
-    mkdir_p RUN_DIR
-    chown_R "vagrant", "vagrant", DATA_DIR
-    chown_R "vagrant", "vagrant", RUN_DIR
+    rm_rf   DATA_DIR, verbose: !!ENV["TEST_DEBUG"]
+    mkdir_p DATA_DIR, verbose: !!ENV["TEST_DEBUG"]
+    mkdir_p RUN_DIR, verbose: !!ENV["TEST_DEBUG"]
+    chown_R "vagrant", "vagrant", DATA_DIR, verbose: !!ENV["TEST_DEBUG"]
+    puts `ls -lh #{DATA_DIR}` if ENV["TEST_DEBUG"]
+    chown_R "vagrant", "vagrant", RUN_DIR, verbose: !!ENV["TEST_DEBUG"]
+    puts `ls -lh #{DATA_DIR}` if ENV["TEST_DEBUG"]
 
     run_cmd "pg_ctl initdb -D #{DATA_DIR} -o '-A trust'"
+    puts `ls -lh #{DATA_DIR}` if ENV["TEST_DEBUG"]
   end
 
   def self.create_roles

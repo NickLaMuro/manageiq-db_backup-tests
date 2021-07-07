@@ -95,7 +95,9 @@ end
 
 desc "Run the tests"
 task :test => ["test:test_args"] do
-  test_cmd  = "sudo -i rake --trace --rakefile /vagrant/test/Rakefile "
+  test_cmd  = "sudo -i rake"
+  test_cmd << " --trace" if @test_args.include?("TEST_DEBUG=1")
+  test_cmd << " --rakefile /vagrant/test/Rakefile "
   test_cmd << @test_args.join(" ")
   sh VAGRANT_SSH_CMD % [ "appliance", test_cmd ]
 end
@@ -104,6 +106,11 @@ namespace :test do
   # Setup the @test_args var
   task :test_args do
     @test_args = ["clean", "test"]
+  end
+
+  desc "Add debugging output"
+  task :debug => :test_args do
+    @test_args << "TEST_DEBUG=1"
   end
 
   desc "Run only local backup tests"
