@@ -114,20 +114,26 @@ namespace :test do
   end
 
   desc "Run only local backup tests"
-  task :local => :test_args do
+  task :local, [:testopts] => :test_args do |_, args|
+    args.with_defaults :testopts => nil
     @test_args << "TEST=/vagrant/test/local_backup_test.rb"
+    @test_args << "TESTOPTS='#{args.testopts}'" if args.testopts
     Rake::Task["test"].invoke
   end
 
   desc "Run only NFS backup tests"
-  task :nfs => :test_args do
+  task :nfs, [:testopts] => :test_args do |_, args|
+    args.with_defaults :testopts => nil
     @test_args << "TEST=/vagrant/test/nfs_backup_test.rb"
+    @test_args << "TESTOPTS='#{args.testopts}'" if args.testopts
     Rake::Task["test"].invoke
   end
 
   desc "Run only SMB backup tests"
-  task :smb => :test_args do
+  task :smb, [:testopts] => :test_args do |_, args|
+    args.with_defaults :testopts => nil
     @test_args << "TEST=/vagrant/test/smb_backup_test.rb"
+    @test_args << "TESTOPTS='#{args.testopts}'" if args.testopts
     Rake::Task["test"].invoke
   end
 end
