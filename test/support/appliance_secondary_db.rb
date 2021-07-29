@@ -1,4 +1,3 @@
-require "etc"
 require "fileutils"
 
 class ApplianceSecondaryDB
@@ -25,7 +24,7 @@ class ApplianceSecondaryDB
   end
 
   def self.run_cmd cmd
-    cmd         = %Q{su vagrant -lc \"#{cmd}\"} if Etc.getlogin == "vagrant"
+    cmd         = %Q{sudo -u vagrant #{cmd}}
     cmd_options = ENV["TEST_DEBUG"] ? {} : {[:out, :err] => File::NULL}
 
     puts "$ #{cmd}" if ENV["TEST_DEBUG"]
@@ -47,8 +46,8 @@ class ApplianceSecondaryDB
   end
 
   def self.create_roles
-    run_cmd %Q{psql --port 5555 -h localhost -c \\"CREATE ROLE root WITH LOGIN CREATEDB SUPERUSER PASSWORD 'smartvm'\\" postgres}
-    run_cmd %Q{psql --port 5555 -h localhost -c \\"CREATE ROLE postgres\\" postgres}
+    run_cmd %Q{psql --port 5555 -h /opt/manageiq/postgres_restore_pg/run -c "CREATE ROLE root WITH LOGIN CREATEDB SUPERUSER PASSWORD 'smartvm'" postgres}
+    run_cmd %Q{psql --port 5555 -h /opt/manageiq/postgres_restore_pg/run -c "CREATE ROLE postgres" postgres}
   end
 
   def self.update_config
