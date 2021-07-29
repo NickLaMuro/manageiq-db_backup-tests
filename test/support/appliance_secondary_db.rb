@@ -54,7 +54,7 @@ class ApplianceSecondaryDB
     conf_file = File.join DATA_DIR, 'postgresql.conf'
     conf      = File.read conf_file
     conf.gsub! "include_dir = '/etc/manageiq/postgresql.conf.d'", "ssl = on"
-    conf     << "\n\nunix_socket_directories = '#{RUN_DIR}, /tmp'"
+    conf     << "\n\nunix_socket_directories = '#{RUN_DIR}'"
 
     File.write conf_file, conf
   end
