@@ -3,7 +3,7 @@ require "fileutils"
 class ApplianceSecondaryDB
   extend FileUtils
 
-  DB_USER  = "vagrant"
+  DB_USER  = "postgres"
   PG_DIR   = File.join("", "opt", "manageiq", "postgres_restore_pg").freeze
   RUN_DIR  = File.join(PG_DIR, "run").freeze
   DATA_DIR = File.join(PG_DIR, "data").freeze
@@ -42,7 +42,7 @@ class ApplianceSecondaryDB
     chown_R DB_USER, DB_USER, RUN_DIR, verbose: !!ENV["TEST_DEBUG"]
     puts `ls -lh #{DATA_DIR}` if ENV["TEST_DEBUG"]
 
-    run_cmd "pg_ctl initdb -D #{DATA_DIR} -o '-A trust'"
+    run_cmd "pg_ctl initdb -D #{DATA_DIR} -o '-A trust' -U #{DB_USER}"
     chown_R DB_USER, DB_USER, DATA_DIR, verbose: !!ENV["TEST_DEBUG"]
     puts `ls -lh #{DATA_DIR}` if ENV["TEST_DEBUG"]
     chown_R DB_USER, DB_USER, RUN_DIR, verbose: !!ENV["TEST_DEBUG"]
