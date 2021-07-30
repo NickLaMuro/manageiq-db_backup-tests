@@ -1,18 +1,18 @@
+require_relative './appliance_console_cli.rb'
 require_relative './appliance_secondary_db.rb'
 require_relative './constants.rb'
 require_relative './db_filename_helper.rb'
 require_relative './db_connection.rb'
-require_relative './rake_helper.rb'
 require_relative './ssh.rb'
 
 DbConnection.configure
 
 class DbValidator
-  RAKE_RESTORE_PATCHES = "/vagrant/test/support/appliance_rake_restore_patches.rb"
+  RESTORE_PATCHES = "/vagrant/test/support/appliance_restore_patches.rb"
 
   include ::DbFilenameHelper
 
-  attr_reader :dbname, :restore_type, :rake_location, :split
+  attr_reader :dbname, :restore_type, :backup_location, :split
 
   def self.validate db
     new(db).matches_origial?
@@ -50,6 +50,12 @@ class DbValidator
   end
 
   def matches_origial?
+    debug
+    debug
+    debug ".matches_origial?"
+    debug "  #{counts.inspect}"
+    debug "  #{self.class.defaults.inspect}"
+    debug
     counts == self.class.defaults
   end
 
@@ -76,7 +82,7 @@ class DbValidator
 
   def with_connection
     ActiveRecord::Base.establish_connection @db.to_sym
-    # puts ActiveRecord::Base.connection_config.inspect
+    debug ActiveRecord::Base.connection_config.inspect
     yield
   ensure
     ActiveRecord::Base.remove_connection
@@ -139,13 +145,13 @@ class DbValidator
       SSH.run_commands DB_BACKUP_RESTORE_TEMPLATE % filepath
     else
       ApplianceSecondaryDB.reset_db
-      RakeHelper.run_rake :restore, rake_location, @db,
-                          :dbname        => dbname,
-                          :port          => "5555",
-                          :hostname      => "localhost",
-                          :username      => "root",
-                          :password      => "smartvm",
-                          :rake_cmd_args => { :require => RAKE_RESTORE_PATCHES }
+      ApplianceConsoleCli.run_cmd :restore, backup_location, @db,
+                                  :dbname   => dbname,
+                                  :port     => "5555",
+                                  :hostname => "localhost",
+                                  :username => "root",
+                                  :password => "smartvm",
+                                  :rubyopt  => "-r#{RESTORE_PATCHES}"
     end
   end
 
@@ -159,11 +165,11 @@ class DbValidator
       filepath = share_filepath_for :dump
       SSH.run_commands DB_BACKUP_DUMP_TEMPLATE % [dbname, dbname, filepath, dbname]
     else
-      RakeHelper.run_rake :restore, rake_location, @db,
-                          :dbname   => dbname,
-                          :hostname => ::SHARE_IP,
-                          :username => "root",
-                          :password => "smartvm"
+      ApplianceConsoleCli.run_cmd :restore, backup_location, @db,
+                                  :dbname   => dbname,
+                                  :hostname => ::SHARE_IP,
+                                  :username => "root",
+                                  :password => "smartvm"
     end
   end
 
@@ -185,6 +191,10 @@ class DbValidator
 
   def set_restore_vars
     @dbname = dump_database_name
-    @rake_location, @restore_type, _, @split = parse_db_filename dbname
+    @backup_location, @restore_type, _, @split = parse_db_filename dbname
+  end
+
+  def debug input = ""
+    puts input if ENV["TEST_DEBUG"]
   end
 end

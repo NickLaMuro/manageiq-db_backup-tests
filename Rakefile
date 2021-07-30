@@ -95,7 +95,9 @@ end
 
 desc "Run the tests"
 task :test => ["test:test_args"] do
-  test_cmd  = "sudo -i rake --trace --rakefile /vagrant/test/Rakefile "
+  test_cmd  = "sudo -i rake"
+  test_cmd << " --trace" if @test_args.include?("TEST_DEBUG=1")
+  test_cmd << " --rakefile /vagrant/test/Rakefile "
   test_cmd << @test_args.join(" ")
   sh VAGRANT_SSH_CMD % [ "appliance", test_cmd ]
 end
@@ -106,21 +108,32 @@ namespace :test do
     @test_args = ["clean", "test"]
   end
 
+  desc "Add debugging output"
+  task :debug => :test_args do
+    @test_args << "TEST_DEBUG=1"
+  end
+
   desc "Run only local backup tests"
-  task :local => :test_args do
+  task :local, [:testopts] => :test_args do |_, args|
+    args.with_defaults :testopts => nil
     @test_args << "TEST=/vagrant/test/local_backup_test.rb"
+    @test_args << "TESTOPTS='#{args.testopts}'" if args.testopts
     Rake::Task["test"].invoke
   end
 
   desc "Run only NFS backup tests"
-  task :nfs => :test_args do
+  task :nfs, [:testopts] => :test_args do |_, args|
+    args.with_defaults :testopts => nil
     @test_args << "TEST=/vagrant/test/nfs_backup_test.rb"
+    @test_args << "TESTOPTS='#{args.testopts}'" if args.testopts
     Rake::Task["test"].invoke
   end
 
   desc "Run only SMB backup tests"
-  task :smb => :test_args do
+  task :smb, [:testopts] => :test_args do |_, args|
+    args.with_defaults :testopts => nil
     @test_args << "TEST=/vagrant/test/smb_backup_test.rb"
+    @test_args << "TESTOPTS='#{args.testopts}'" if args.testopts
     Rake::Task["test"].invoke
   end
 end

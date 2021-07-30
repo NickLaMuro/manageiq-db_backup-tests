@@ -1,9 +1,9 @@
-require "etc"
 require "fileutils"
 
 class ApplianceSecondaryDB
   extend FileUtils
 
+  DB_USER  = "postgres"
   PG_DIR   = File.join("", "opt", "manageiq", "postgres_restore_pg").freeze
   RUN_DIR  = File.join(PG_DIR, "run").freeze
   DATA_DIR = File.join(PG_DIR, "data").freeze
@@ -25,30 +25,40 @@ class ApplianceSecondaryDB
   end
 
   def self.run_cmd cmd
-    cmd = %Q{su vagrant -lc \"#{cmd}\"} if Etc.getlogin == "vagrant"
-    system cmd, [:out, :err] => File::NULL
+    cmd         = %Q{sudo -u #{DB_USER} #{cmd}}
+    cmd_options = ENV["TEST_DEBUG"] ? {} : {[:out, :err] => File::NULL}
+
+    puts "$ #{cmd}" if ENV["TEST_DEBUG"]
+
+    system cmd, cmd_options
   end
 
   def self.rebuild_data_dir
-    rm_rf   Dir["#{DATA_DIR}/*"]
-    mkdir_p DATA_DIR
-    mkdir_p RUN_DIR
-    chown_R "vagrant", "vagrant", DATA_DIR
-    chown_R "vagrant", "vagrant", RUN_DIR
+    rm_rf   DATA_DIR, verbose: !!ENV["TEST_DEBUG"]
+    mkdir_p DATA_DIR, verbose: !!ENV["TEST_DEBUG"]
+    mkdir_p RUN_DIR, verbose: !!ENV["TEST_DEBUG"]
+    chown_R DB_USER, DB_USER, DATA_DIR, verbose: !!ENV["TEST_DEBUG"]
+    puts `ls -lh #{DATA_DIR}` if ENV["TEST_DEBUG"]
+    chown_R DB_USER, DB_USER, RUN_DIR, verbose: !!ENV["TEST_DEBUG"]
+    puts `ls -lh #{DATA_DIR}` if ENV["TEST_DEBUG"]
 
-    run_cmd "pg_ctl initdb -D #{DATA_DIR} -o '-A trust'"
+    run_cmd "pg_ctl initdb -D #{DATA_DIR} -o '-A trust' -U #{DB_USER}"
+    chown_R DB_USER, DB_USER, DATA_DIR, verbose: !!ENV["TEST_DEBUG"]
+    puts `ls -lh #{DATA_DIR}` if ENV["TEST_DEBUG"]
+    chown_R DB_USER, DB_USER, RUN_DIR, verbose: !!ENV["TEST_DEBUG"]
+    puts `ls -lh #{DATA_DIR}` if ENV["TEST_DEBUG"]
   end
 
   def self.create_roles
-    run_cmd %Q{psql --port 5555 -h localhost -c \\"CREATE ROLE root WITH LOGIN CREATEDB SUPERUSER PASSWORD 'smartvm'\\" postgres}
-    run_cmd %Q{psql --port 5555 -h localhost -c \\"CREATE ROLE postgres\\" postgres}
+    run_cmd %Q{psql --port 5555 -h /opt/manageiq/postgres_restore_pg/run -c "CREATE ROLE root WITH LOGIN CREATEDB SUPERUSER PASSWORD 'smartvm'" postgres}
+    run_cmd %Q{psql --port 5555 -h /opt/manageiq/postgres_restore_pg/run -c "CREATE ROLE postgres" postgres}
   end
 
   def self.update_config
     conf_file = File.join DATA_DIR, 'postgresql.conf'
     conf      = File.read conf_file
     conf.gsub! "include_dir = '/etc/manageiq/postgresql.conf.d'", "ssl = on"
-    conf     << "\n\nunix_socket_directories = '#{RUN_DIR}, /tmp'"
+    conf     << "\n\nunix_socket_directories = '#{RUN_DIR}'"
 
     File.write conf_file, conf
   end
